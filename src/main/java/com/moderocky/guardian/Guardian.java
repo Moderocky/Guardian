@@ -7,6 +7,7 @@ import com.moderocky.guardian.config.GuardianConfig;
 import com.moderocky.guardian.listener.*;
 import com.moderocky.guardian.util.Messenger;
 import com.moderocky.mask.template.Plugin;
+import org.bstats.bukkit.Metrics;
 import org.bukkit.Bukkit;
 import org.bukkit.permissions.Permission;
 import org.bukkit.permissions.PermissionDefault;
@@ -21,6 +22,7 @@ public class Guardian extends Plugin {
     private static Guardian instance;
     private static Messenger messenger;
     private final @NotNull GuardianConfig config = new GuardianConfig();
+    private final @NotNull Metrics metrics = new Metrics(this, 7168);
 
     public static Guardian getInstance() {
         return instance;
