@@ -86,7 +86,9 @@ public class ZoneCommand implements WrappedCommand {
             Bukkit.getOnlinePlayers().forEach(player -> list.add(player.getName()));
             return list;
         } else if (i == 3 && (args[0].equalsIgnoreCase("toggle"))) {
-            return api.getFlags();
+            List<String> list = new ArrayList<>(api.getFlags());
+            list.removeIf(string -> !sender.hasPermission("guardian.flag." + string));
+            return list;
         }
         return null;
     }
@@ -158,6 +160,10 @@ public class ZoneCommand implements WrappedCommand {
                 }
                 if (!zone.canEdit(sender instanceof Player ? ((Player) sender).getUniqueId() : UUID.randomUUID())) {
                     messenger.sendMessage("You may not edit this zone.", sender);
+                    return true;
+                }
+                if (!sender.hasPermission("guardian.flag." + id)) {
+                    messenger.sendMessage("You do not have permission to toggle this flag.", sender);
                     return true;
                 }
                 if (zone.hasFlag(flag)) {

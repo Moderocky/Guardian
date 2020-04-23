@@ -5,34 +5,32 @@ import com.moderocky.guardian.api.GuardianAPI;
 import com.moderocky.guardian.api.Zone;
 import com.moderocky.mask.template.CompleteListener;
 import org.bukkit.Location;
-import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
-import org.bukkit.event.block.BlockPlaceEvent;
+import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * @author Moderocky
  * @version 1.0.0
  */
-public class BlockPlaceListener implements CompleteListener {
+public class AsyncPlayerChatListener implements CompleteListener {
 
     private final @NotNull GuardianAPI api = Guardian.getApi();
 
     @EventHandler(priority = EventPriority.LOW)
-    public void onRegion(BlockPlaceEvent event) {
+    public void onRegion(AsyncPlayerChatEvent event) {
         if (event.isCancelled()) return;
-        Block block = event.getBlock();
-        Location location = block.getLocation();
         Player player = event.getPlayer();
-        String hache = player.hashCode() + "0x12" + block.hashCode();
+        Location location = player.getLocation();
+        String hache = player.hashCode() + "0x10" + location.getBlockX() + "0" + location.getBlockY() + "0" + location.getBlockZ() + "0";
         Boolean boo = api.getCachedResult(hache);
         if (boo != null) {
             event.setCancelled(boo);
         } else {
             for (Zone zone : api.getZones(location)) {
-                if (!zone.canInteract(location, "place_blocks", player)) {
+                if (!zone.canInteract(location, "prevent_chat", player)) {
                     event.setCancelled(true);
                     api.addCachedResult(hache, true);
                     api.denyEvent(player);

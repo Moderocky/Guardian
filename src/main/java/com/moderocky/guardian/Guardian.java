@@ -67,6 +67,7 @@ public class Guardian extends Plugin {
     @Override
     protected void registerListeners() {
         register(
+                new AsyncPlayerChatListener(),
                 new BlockBreakListener(),
                 new BlockPlaceListener(),
                 new EntityDamageByEntityListener(),
@@ -74,8 +75,10 @@ public class Guardian extends Plugin {
                 new EntitySpawnListener(),
                 new InventoryOpenListener(),
                 new PlayerAttemptPickupItemListener(),
+                new PlayerCommandPreprocessListener(),
                 new PlayerInteractEntityListener(),
-                new PlayerInteractListener()
+                new PlayerInteractListener(),
+                new PlayerTeleportListener()
         );
     }
 
@@ -85,6 +88,15 @@ public class Guardian extends Plugin {
                 new WandCommand(),
                 new ZoneCommand()
         );
+    }
+
+    @Override
+    protected void registerSyntax() {
+        try {
+            getAddon().loadClasses("com.moderocky.guardian.skript", "effect");
+            getAddon().loadClasses("com.moderocky.guardian.skript", "expression");
+        } catch (Throwable ignore) {
+        }
     }
 
     @NotNull

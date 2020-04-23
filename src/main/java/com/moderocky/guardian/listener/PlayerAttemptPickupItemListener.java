@@ -3,7 +3,6 @@ package com.moderocky.guardian.listener;
 import com.moderocky.guardian.Guardian;
 import com.moderocky.guardian.api.GuardianAPI;
 import com.moderocky.guardian.api.Zone;
-import com.moderocky.guardian.config.GuardianConfig;
 import com.moderocky.mask.template.CompleteListener;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
@@ -19,14 +18,13 @@ import org.jetbrains.annotations.NotNull;
 public class PlayerAttemptPickupItemListener implements CompleteListener {
 
     private final @NotNull GuardianAPI api = Guardian.getApi();
-    private final @NotNull GuardianConfig config = Guardian.getInstance().getGuardianConfig();
 
     @EventHandler(priority = EventPriority.LOW)
     public void onRegion(PlayerAttemptPickupItemEvent event) {
         if (event.isCancelled()) return;
         Player player = event.getPlayer();
         Location location = event.getItem().getLocation();
-        String hache = player.hashCode() + "0x13" + location.hashCode();
+        String hache = player.hashCode() + "0x13" + location.getBlockX() + "0" + location.getBlockY() + "0" + location.getBlockZ();
         Boolean boo = api.getCachedResult(hache);
         if (boo != null) {
             event.setCancelled(boo);

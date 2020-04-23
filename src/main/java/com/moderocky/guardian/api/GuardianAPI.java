@@ -1,6 +1,8 @@
 package com.moderocky.guardian.api;
 
 import com.moderocky.guardian.Guardian;
+import com.moderocky.guardian.config.GuardianConfig;
+import com.moderocky.guardian.listener.BlanketUncaughtListener;
 import com.moderocky.guardian.util.ParticleUtils;
 import com.moderocky.mask.annotation.DoNotInstantiate;
 import com.moderocky.mask.annotation.Internal;
@@ -11,16 +13,20 @@ import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
+import org.bukkit.event.Event;
+import org.bukkit.event.HandlerList;
+import org.bukkit.permissions.Permission;
+import org.bukkit.permissions.PermissionDefault;
 import org.bukkit.persistence.PersistentDataType;
+import org.bukkit.plugin.RegisteredListener;
 import org.bukkit.util.BoundingBox;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.lang.reflect.Constructor;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
+import java.lang.reflect.Method;
+import java.util.*;
 
 public class GuardianAPI {
 
@@ -29,6 +35,7 @@ public class GuardianAPI {
     private final @NotNull HashMap<WorldDistrict, List<NamespacedKey>> worldDistrictCache = new HashMap<>();
     private final @NotNull List<String> flags = new ArrayList<>();
     private final @NotNull HashMap<String, Boolean> eventResultCache = new HashMap<>();
+    private final @NotNull HashMap<Class<Event>, EventMethRef> blindEventMap = new HashMap<>();
 
     @Internal
     @DoNotInstantiate
@@ -36,23 +43,47 @@ public class GuardianAPI {
     }
 
     public void init() {
-        flags.clear();
+        GuardianConfig config = Guardian.getInstance().getGuardianConfig();
 
+        flags.clear();
         reload();
-        addFlag("mob_griefing");
-        addFlag("mob_spawning");
-        addFlag("break_blocks");
-        addFlag("place_blocks");
-        addFlag("damage_players");
-        addFlag("damage_entities");
-        addFlag("open_containers");
-        addFlag("pick_up_items");
-        addFlag("interact_with_blocks");
-        addFlag("interact_with_entities");
+
+        addFlag("mob_griefing", config.allowBasicFlags);
+        addFlag("mob_spawning", config.allowBasicFlags);
+        addFlag("break_blocks", config.allowBasicFlags);
+        addFlag("place_blocks", config.allowBasicFlags);
+        addFlag("damage_players", config.allowBasicFlags);
+        addFlag("damage_entities", config.allowBasicFlags);
+        addFlag("damage_vehicles", config.allowBasicFlags);
+        addFlag("open_containers", config.allowBasicFlags);
+        addFlag("pick_up_items", config.allowBasicFlags);
+        addFlag("interact_with_blocks", config.allowBasicFlags);
+        addFlag("interact_with_entities", config.allowBasicFlags);
+        addFlag("prevent_tree_growth", config.allowBasicFlags);
+        addFlag("prevent_commands", config.allowSpecialFlags);
+        addFlag("prevent_chat", config.allowSpecialFlags);
+        addFlag("prevent_teleport", config.allowSpecialFlags);
 
         Bukkit.getScheduler().runTaskTimerAsynchronously(Guardian.getInstance(), this::save, 300, 2000);
         Bukkit.getScheduler().runTaskTimerAsynchronously(Guardian.getInstance(), this::updateCache, 300, 200);
 
+    }
+
+    public void registerBlindEvent(EventMethRef methRef) {
+        try {
+            blindEventMap.put(methRef.getEventClass(), methRef);
+            Class<Event> eventClass = methRef.getEventClass();
+            Method method = eventClass.getDeclaredMethod("getHandlerList");
+            method.setAccessible(true);
+            HandlerList list = (HandlerList) method.invoke(null);
+            for (Map.Entry<Class<? extends Event>, Set<RegisteredListener>> entry : Guardian.getInstance().getPluginLoader().createRegisteredListeners(new BlanketUncaughtListener(), Guardian.getInstance()).entrySet()) {
+                list.registerAll(entry.getValue());
+            }
+        } catch (Throwable ignore) {}
+    }
+
+    public EventMethRef getMethRef(Class<? extends Event> eventClass) {
+        return blindEventMap.get(eventClass);
     }
 
     public void updateCache() {
@@ -67,8 +98,28 @@ public class GuardianAPI {
         eventResultCache.put(hashedEvent, isCancelled);
     }
 
+    /**
+     * Used to register a protection flag.
+     * It will be usable by all players by default.
+     * <p>
+     * You can annul these permissions.
+     *
+     * @param flag The flag id
+     */
     public void addFlag(String flag) {
         flags.add(flag);
+        Bukkit.getPluginManager().addPermission(new Permission("guardian.flag." + flag, PermissionDefault.TRUE));
+    }
+
+    /**
+     * Used to register a protection flag.
+     *
+     * @param flag The flag id
+     * @param perm The permission default
+     */
+    public void addFlag(String flag, PermissionDefault perm) {
+        flags.add(flag);
+        Bukkit.getPluginManager().addPermission(new Permission("guardian.flag." + flag, perm));
     }
 
     public boolean isFlag(String flag) {
@@ -106,7 +157,7 @@ public class GuardianAPI {
 
     public void displayBox(BoundingBox boundingBox, World world, Player player) {
 //        ParticleUtils.drawHash(Particle.END_ROD, 0.25, boundingBox, world);
-        ParticleUtils.drawBox(Particle.END_ROD,null, boundingBox, world, 0.25);
+        ParticleUtils.drawBox(Particle.END_ROD, null, boundingBox, world, 0.25);
     }
 
     public void highlightBlock(Block block, Particle particle, @Nullable Object data) {

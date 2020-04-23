@@ -46,6 +46,13 @@ public class CuboidalZone extends Zone {
         return zone;
     }
 
+    public static CuboidalZone createZone(String id, Location l1, Location l2) {
+        BoundingBox boundingBox = BoundingBox.of(l1, l2);
+        CuboidalZone zone = new CuboidalZone(id, boundingBox, l1.getWorld());
+        zone.setOwner(null);
+        return zone;
+    }
+
     public BoundingBox getBoundingBox() {
         return boundingBox;
     }
