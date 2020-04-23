@@ -148,6 +148,10 @@ public class ZoneCommand implements WrappedCommand {
                 messenger.sendMessage("A zone with the id '" + id + "' has been removed.", sender);
             } else if (args[0].equalsIgnoreCase("teleport") || args[0].equalsIgnoreCase("tp")) {
                 if (!(sender instanceof Player)) return false;
+                if (!sender.hasPermission("guardian.command.teleport")) {
+                    messenger.sendMessage("You do not have permission for this action.", sender);
+                    return true;
+                }
                 Player player = (Player) sender;
                 if (args.length < 2) {
                     messenger.sendMessage("/zone teleport <zone_id>", sender);
