@@ -23,7 +23,7 @@ public class PlayerTeleportListener implements CompleteListener {
     public void onRegion(PlayerTeleportEvent event) {
         if (event.isCancelled()) return;
         Player player = event.getPlayer();
-        Location location = player.getLocation();
+        Location location = event.getTo();
         String hache = player.hashCode() + "0x17" + location.getBlockX() + "0" + location.getBlockY() + "0" + location.getBlockZ() + "0";
         Boolean boo = api.getCachedResult(hache);
         if (boo != null) {

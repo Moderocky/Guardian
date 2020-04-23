@@ -36,19 +36,18 @@ public class PlayerInteractListener implements CompleteListener {
         if (block == null) return;
         if (event.getItem() == null) return;
         ItemStack itemStack = event.getItem();
-        if (itemStack.getType() != config.wandMaterial) return;
-        if (itemStack.getItemMeta().getCustomModelData() != config.modelData) return;
+        if (!api.isWand(itemStack)) return;
         event.setCancelled(true);
 
         Location location = block.getLocation().add(0.5, 0.5, 0.5).add(event.getBlockFace().getDirection().normalize().multiply(0.5));
         if (event.getAction() == Action.LEFT_CLICK_BLOCK) {
             player.getPersistentDataContainer().set(Guardian.getNamespacedKey("wand_pos_1"), PersistentDataType.STRING, api.serialisePosition(block.getLocation()));
             location.getWorld().spawnParticle(Particle.BLOCK_DUST, location, 12, Material.REDSTONE_BLOCK.createBlockData());
-            player.sendActionBar("Set Zone Position #1");
+            player.sendActionBar(config.setPosition.replace("%s", "1"));
         } else if (event.getAction() == Action.RIGHT_CLICK_BLOCK) {
             player.getPersistentDataContainer().set(Guardian.getNamespacedKey("wand_pos_2"), PersistentDataType.STRING, api.serialisePosition(block.getLocation()));
             location.getWorld().spawnParticle(Particle.BLOCK_DUST, location, 12, Material.LAPIS_BLOCK.createBlockData());
-            player.sendActionBar("Set Zone Position #2");
+            player.sendActionBar(config.setPosition.replace("%s", "2"));
         }
         api.displayBox(player);
     }
@@ -60,20 +59,15 @@ public class PlayerInteractListener implements CompleteListener {
         if (block == null) return;
         Location location = block.getLocation();
         Player player = event.getPlayer();
-        String hache = player.hashCode() + "0x15" + block.hashCode();
-        Boolean boo = null;// = api.getCachedResult(hache);
-        if (boo != null) {
-            event.setCancelled(boo);
-        } else {
-            for (Zone zone : api.getZones(location)) {
-                if (!zone.canInteract(location, "interact_with_blocks", player)) {
-                    event.setCancelled(true);
-                    api.addCachedResult(hache, true);
-                    api.denyEvent(player);
-                    return;
-                }
+//        String hache = player.hashCode() + "0x15" + block.hashCode();
+//        Boolean boo = api.getCachedResult(hache);
+        // This event can't be effectively cached.
+        for (Zone zone : api.getZones(location)) {
+            if (!zone.canInteract(location, "interact_with_blocks", player)) {
+                event.setCancelled(true);
+                api.denyEvent(player);
+                return;
             }
-            api.addCachedResult(hache, false);
         }
     }
 

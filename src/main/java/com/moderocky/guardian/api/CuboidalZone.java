@@ -12,6 +12,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
@@ -22,6 +23,9 @@ public class CuboidalZone extends Zone {
     private BoundingBox boundingBox;
     private Location location;
     private UUID owner;
+
+    private String name;
+    private String description;
 
     public CuboidalZone(@NotNull NamespacedKey id) {
         super(id);
@@ -128,6 +132,8 @@ public class CuboidalZone extends Zone {
         getAllowedPlayers().forEach(uuid -> players.add(uuid.toString()));
         section.set("players", players);
         section.set("owner", getOwner() != null ? getOwner().toString() : null);
+        section.set("name", name);
+        section.set("desc", Arrays.asList(description.split("\n")));
     }
 
     @Override
@@ -148,6 +154,30 @@ public class CuboidalZone extends Zone {
         String string = section.getString("owner");
         if (string != null) setOwner(UUID.fromString(string));
         else setOwner(null);
+        name = section.getString("name");
+        List<String> desc = section.getStringList("desc");
+        if (desc.isEmpty()) description = null;
+        else description = String.join(System.lineSeparator(), desc);
+    }
+
+    @Override
+    public String getDescription() {
+        return description;
+    }
+
+    @Override
+    public void setDescription(String s) {
+        this.description = s;
+    }
+
+    @Override
+    public String getName() {
+        return name;
+    }
+
+    @Override
+    public void setName(String s) {
+        this.name = s;
     }
 
 }

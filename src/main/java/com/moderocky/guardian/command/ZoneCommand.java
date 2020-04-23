@@ -9,8 +9,10 @@ import com.moderocky.guardian.config.GuardianConfig;
 import com.moderocky.guardian.util.Messenger;
 import com.moderocky.mask.template.WrappedCommand;
 import net.md_5.bungee.api.ChatColor;
+import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.ComponentBuilder;
+import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.NamespacedKey;
@@ -64,17 +66,18 @@ public class ZoneCommand implements WrappedCommand {
 
     @Override
     public @Nullable List<String> getCompletions(int i) {
-        if (i == 1) return Arrays.asList("list", "create", "delete", "info", "show", "toggle", "add", "remove");
+        if (i == 1) return Arrays.asList("list", "create", "delete", "info", "teleport", "show", "toggle", "add", "remove");
         return null;
     }
 
     @Override
     public @Nullable List<String> getCompletions(int i, @NotNull CommandSender sender, @NotNull Command command, @NotNull String alias, @NotNull String[] args) {
         if (i == 1) {
-            return Arrays.asList("list", "create", "delete", "info", "show", "toggle", "add", "remove");
+            return Arrays.asList("list", "create", "delete", "info", "teleport", "show", "toggle", "add", "remove");
         } else if (i == 2 && (args[0].equalsIgnoreCase("delete") ||
                 args[0].equalsIgnoreCase("toggle") ||
                 args[0].equalsIgnoreCase("info") ||
+                args[0].equalsIgnoreCase("teleport") ||
                 args[0].equalsIgnoreCase("show") ||
                 args[0].equalsIgnoreCase("add") ||
                 args[0].equalsIgnoreCase("remove"))) {
@@ -142,6 +145,21 @@ public class ZoneCommand implements WrappedCommand {
                 api.scheduleSave();
                 api.updateCache();
                 messenger.sendMessage("A zone with the id '" + id + "' has been removed.", sender);
+            } else if (args[0].equalsIgnoreCase("teleport") || args[0].equalsIgnoreCase("tp")) {
+                if (!(sender instanceof Player)) return false;
+                Player player = (Player) sender;
+                if (args.length < 2) {
+                    messenger.sendMessage("/zone teleport <zone_id>", sender);
+                    return true;
+                }
+                String id = args[1];
+                Zone zone = api.getZone(id);
+                if (zone == null) {
+                    messenger.sendMessage("No zone with the id '" + id + "' can be found.", sender);
+                    return true;
+                }
+                player.teleport(zone.getLocation());
+                messenger.sendMessage("Teleporting to '" + zone.getName() + "'.", sender);
             } else if (args[0].equalsIgnoreCase("toggle")) {
                 if (args.length < 3) {
                     messenger.sendMessage("/zone toggle <zone_id> <flag>", sender);
@@ -179,7 +197,7 @@ public class ZoneCommand implements WrappedCommand {
                 api.updateCache();
             } else if (args[0].equalsIgnoreCase("info")) {
                 if (args.length < 2) {
-                    messenger.sendMessage("/zone delete <zone_id>", sender);
+                    messenger.sendMessage("/zone info <zone_id>", sender);
                     return true;
                 }
                 String id = args[1];
@@ -196,10 +214,12 @@ public class ZoneCommand implements WrappedCommand {
                 for (String flag : zone.getFlags()) {
                     flags.add(convertCase(flag));
                 }
+                BaseComponent[] desc = zone.getDescription() == null ? new ComponentBuilder("").create() : new ComponentBuilder(System.lineSeparator()).append(TextComponent.fromLegacyText(getDescription(), ChatColor.GRAY)).create();
                 messenger.sendMessage(new ComponentBuilder("Zone Info: ")
                         .color(ChatColor.GRAY)
-                        .append(convertCase(zone.getKey().getKey()))
+                        .append(zone.getName())
                         .color(ChatColor.LIGHT_PURPLE)
+                        .append(desc)
                         .append(System.lineSeparator())
                         .reset()
                         .append(System.lineSeparator())
@@ -339,4 +359,5 @@ public class ZoneCommand implements WrappedCommand {
         }
         return String.join(" ", list);
     }
+
 }

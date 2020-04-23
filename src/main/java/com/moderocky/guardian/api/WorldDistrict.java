@@ -3,8 +3,6 @@ package com.moderocky.guardian.api;
 import org.bukkit.Location;
 import org.bukkit.World;
 
-import java.util.Objects;
-
 public class WorldDistrict {
 
     private final long x;
@@ -43,9 +41,7 @@ public class WorldDistrict {
         if (this == o) return true;
         if (!(o instanceof WorldDistrict)) return false;
         WorldDistrict that = (WorldDistrict) o;
-        return x == that.x &&
-                z == that.z &&
-                Objects.equals(world, that.world);
+        return x == that.x && z == that.z && world == that.world;
     }
 
     @Override

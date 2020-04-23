@@ -15,8 +15,10 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.permissions.Permission;
 import org.bukkit.permissions.PermissionDefault;
+import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.RegisteredListener;
 import org.bukkit.util.BoundingBox;
@@ -37,13 +39,15 @@ public class GuardianAPI {
     private final @NotNull HashMap<String, Boolean> eventResultCache = new HashMap<>();
     private final @NotNull HashMap<Class<Event>, EventMethRef> blindEventMap = new HashMap<>();
 
+    private GuardianConfig config;
+
     @Internal
     @DoNotInstantiate
     public GuardianAPI() {
     }
 
     public void init() {
-        GuardianConfig config = Guardian.getInstance().getGuardianConfig();
+        config = Guardian.getInstance().getGuardianConfig();
 
         flags.clear();
         reload();
@@ -64,9 +68,8 @@ public class GuardianAPI {
         addFlag("prevent_chat", config.allowSpecialFlags);
         addFlag("prevent_teleport", config.allowSpecialFlags);
 
-        Bukkit.getScheduler().runTaskTimerAsynchronously(Guardian.getInstance(), this::save, 300, 2000);
-        Bukkit.getScheduler().runTaskTimerAsynchronously(Guardian.getInstance(), this::updateCache, 300, 200);
-
+        Bukkit.getScheduler().runTaskTimerAsynchronously(Guardian.getInstance(), this::save, 300, (config.saveDelay * 20));
+        Bukkit.getScheduler().runTaskTimerAsynchronously(Guardian.getInstance(), this::updateCache, 300, (config.actionCacheResetDelay * 20));
     }
 
     public void registerBlindEvent(EventMethRef methRef) {
@@ -79,7 +82,19 @@ public class GuardianAPI {
             for (Map.Entry<Class<? extends Event>, Set<RegisteredListener>> entry : Guardian.getInstance().getPluginLoader().createRegisteredListeners(new BlanketUncaughtListener(), Guardian.getInstance()).entrySet()) {
                 list.registerAll(entry.getValue());
             }
-        } catch (Throwable ignore) {}
+        } catch (Throwable ignore) {
+        }
+    }
+
+    public ItemStack getWand() {
+        return config.getWand();
+    }
+
+    public boolean isWand(ItemStack itemStack) {
+        PersistentDataContainer container = itemStack.getItemMeta().getPersistentDataContainer();
+        NamespacedKey key = Guardian.getNamespacedKey("wand");
+        Byte bi = container.get(key, PersistentDataType.BYTE);
+        return bi != null && bi == 1;
     }
 
     public EventMethRef getMethRef(Class<? extends Event> eventClass) {
@@ -142,7 +157,8 @@ public class GuardianAPI {
     }
 
     public void denyEvent(Player player) {
-        player.sendActionBar("You cannot interact with this zone!");
+        if (config.actionDenyMessage != null)
+            player.sendActionBar(config.actionDenyMessage);
     }
 
     public void displayBox(Player player) {
