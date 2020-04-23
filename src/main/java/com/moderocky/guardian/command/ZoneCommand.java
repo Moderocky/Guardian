@@ -66,7 +66,8 @@ public class ZoneCommand implements WrappedCommand {
 
     @Override
     public @Nullable List<String> getCompletions(int i) {
-        if (i == 1) return Arrays.asList("list", "create", "delete", "info", "teleport", "show", "toggle", "add", "remove");
+        if (i == 1)
+            return Arrays.asList("list", "create", "delete", "info", "teleport", "show", "toggle", "add", "remove");
         return null;
     }
 
