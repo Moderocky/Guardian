@@ -236,7 +236,7 @@ public class GuardianAPI {
         return new ArrayList<>(worldDistrictCache.getOrDefault(district, new ArrayList<>()));
     }
 
-    public List<Zone> getZones(Location location) {
+    public @NotNull List<Zone> getZones(Location location) {
         List<Zone> list = new ArrayList<>();
         for (Zone zone : getZones()) {
             if (location.distance(zone.getLocation()) > zone.getRadius()) continue;

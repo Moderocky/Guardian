@@ -24,8 +24,8 @@ public class CuboidalZone extends Zone {
     private Location location;
     private UUID owner;
 
-    private String name;
-    private String description;
+    private String name = null;
+    private String description = null;
 
     public CuboidalZone(@NotNull NamespacedKey id) {
         super(id);
@@ -133,7 +133,7 @@ public class CuboidalZone extends Zone {
         section.set("players", players);
         section.set("owner", getOwner() != null ? getOwner().toString() : null);
         section.set("name", name);
-        section.set("desc", Arrays.asList(description.split("\n")));
+        section.set("desc", description == null ? null : Arrays.asList(description.split("\n")));
     }
 
     @Override
@@ -172,7 +172,7 @@ public class CuboidalZone extends Zone {
 
     @Override
     public String getName() {
-        return name;
+        return name == null ? super.getName() : name;
     }
 
     @Override

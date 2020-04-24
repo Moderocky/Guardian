@@ -34,7 +34,7 @@ import java.util.Arrays;
         "reset zone \"my_zone\"'s flags",
         "set guardian zone \"my_zone\"'s flags to {list_of_flags::*}"
 })
-@Since("1.0.0")
+@Since("1.0.4")
 @SuppressWarnings("unused")
 public class ZoneFlagsExpr extends SimpleExpression<String> {
 
@@ -65,21 +65,8 @@ public class ZoneFlagsExpr extends SimpleExpression<String> {
 
     @Override
     @Nullable
-    public Class<?>[] acceptChange(final Changer.ChangeMode mode) {
-        switch (mode) {
-            case REMOVE:
-                return CollectionUtils.array(String[].class);
-            case REMOVE_ALL:
-                return CollectionUtils.array(String[].class);
-            case DELETE:
-            case SET:
-                return CollectionUtils.array(String[].class);
-            case ADD:
-                return CollectionUtils.array(String[].class);
-            case RESET:
-            default:
-                return null;
-        }
+    public Class<?>[] acceptChange(final Changer.@NotNull ChangeMode mode) {
+        return CollectionUtils.array(String[].class);
     }
 
     @Override
@@ -93,34 +80,31 @@ public class ZoneFlagsExpr extends SimpleExpression<String> {
 
         switch (mode) {
             case SET:
-                assert strings != null;
+                if (strings == null) break;
                 zone.getFlags().forEach(zone::removeFlag);
                 for (String line : strings) {
                     if (api.isFlag(line)) zone.addFlag(line);
                 }
                 break;
             case ADD:
-                assert strings != null;
+                if (strings == null) break;
                 for (String line : strings) {
                     if (api.isFlag(line)) zone.addFlag(line);
                 }
                 break;
             case DELETE:
-                zone.getFlags().forEach(zone::removeFlag);
-            case REMOVE:
-                assert strings != null;
-                for (String string : strings) {
-                    zone.removeFlag(string);
-                }
+                zone.clearFlags();
                 break;
+            case REMOVE:
             case REMOVE_ALL:
-                assert strings != null;
+                if (strings == null) break;
                 for (String string : strings) {
                     zone.removeFlag(string);
                 }
                 break;
             case RESET:
-                zone.getFlags().forEach(zone::removeFlag);
+                zone.clearFlags();
+                break;
         }
     }
 

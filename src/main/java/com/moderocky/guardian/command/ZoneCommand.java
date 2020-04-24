@@ -339,6 +339,7 @@ public class ZoneCommand implements WrappedCommand {
             }
         } else {
             messenger.sendMessage(new ComponentBuilder("Zones Help:")
+                    .append(System.lineSeparator())
                     .append(messenger.getBullets(
                             "/zone list",
                             "/zone info <zone_id>",

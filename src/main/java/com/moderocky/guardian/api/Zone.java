@@ -49,8 +49,12 @@ public abstract class Zone implements Nameable, Describable {
         return flags;
     }
 
+    public void clearFlags() {
+        flags.clear();
+    }
+
     public void addFlag(@NotNull String flag) {
-        flags.add(flag);
+        if (!flags.contains(flag)) flags.add(flag);
     }
 
     public void removeFlag(@NotNull String flag) {
