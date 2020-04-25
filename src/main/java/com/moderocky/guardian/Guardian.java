@@ -97,6 +97,7 @@ public class Guardian extends Plugin {
     @Override
     protected void registerSyntax() {
         try {
+            getAddon().loadClasses("com.moderocky.guardian.skript", "condition");
             getAddon().loadClasses("com.moderocky.guardian.skript", "effect");
             getAddon().loadClasses("com.moderocky.guardian.skript", "expression");
         } catch (Throwable ignore) {

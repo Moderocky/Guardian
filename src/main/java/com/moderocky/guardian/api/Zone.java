@@ -45,6 +45,10 @@ public abstract class Zone implements Nameable, Describable {
         return players.contains(player);
     }
 
+    public void clearPlayers() {
+        players.clear();
+    }
+
     public final @NotNull List<String> getFlags() {
         return flags;
     }

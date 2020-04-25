@@ -38,7 +38,7 @@ public class LogicUtils {
         return vertices;
     }
 
-    public static List<Location> toLocation(List<Vertex> vertices, World world) {
+    public static List<Location> toLocations(List<Vertex> vertices, World world) {
         List<Location> locations = new ArrayList<>();
         vertices.forEach(vertex -> locations.add(vertex.toLocation(world)));
         return locations;
