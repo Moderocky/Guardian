@@ -4,6 +4,7 @@ import com.google.common.base.Ascii;
 import com.moderocky.guardian.Guardian;
 import com.moderocky.guardian.api.CuboidalZone;
 import com.moderocky.guardian.api.GuardianAPI;
+import com.moderocky.guardian.api.PolyhedralZone;
 import com.moderocky.guardian.api.Zone;
 import com.moderocky.guardian.config.GuardianConfig;
 import com.moderocky.guardian.util.Messenger;
@@ -13,10 +14,7 @@ import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.ComponentBuilder;
 import net.md_5.bungee.api.chat.TextComponent;
-import org.bukkit.Bukkit;
-import org.bukkit.Location;
-import org.bukkit.NamespacedKey;
-import org.bukkit.OfflinePlayer;
+import org.bukkit.*;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -67,14 +65,14 @@ public class ZoneCommand implements WrappedCommand {
     @Override
     public @Nullable List<String> getCompletions(int i) {
         if (i == 1)
-            return Arrays.asList("list", "create", "delete", "info", "teleport", "show", "toggle", "add", "remove");
+            return Arrays.asList("list", "create", "createpoly", "delete", "info", "teleport", "show", "toggle", "add", "remove");
         return null;
     }
 
     @Override
     public @Nullable List<String> getCompletions(int i, @NotNull CommandSender sender, @NotNull Command command, @NotNull String alias, @NotNull String[] args) {
         if (i == 1) {
-            return Arrays.asList("list", "create", "delete", "info", "teleport", "show", "toggle", "add", "remove");
+            return Arrays.asList("list", "create", "createpoly", "delete", "info", "teleport", "show", "toggle", "add", "remove");
         } else if (i == 2 && (args[0].equalsIgnoreCase("delete") ||
                 args[0].equalsIgnoreCase("toggle") ||
                 args[0].equalsIgnoreCase("info") ||
@@ -113,7 +111,7 @@ public class ZoneCommand implements WrappedCommand {
                     messenger.sendMessage("Please set zone corners using a zone wand first.", player);
                     return true;
                 }
-                if (l1.getWorld() != l2.getWorld() || l1.distance(l2) > config.maxZoneDiameter) {
+                if (l1.getWorld() != l2.getWorld() || l1.distanceSquared(l2) > (config.maxZoneDiameter * config.maxZoneDiameter)) {
                     messenger.sendMessage("The selected area is larger than " + config.maxZoneDiameter + "×" + config.maxZoneDiameter + " blocks in diameter.", player);
                     return true;
                 }
@@ -130,7 +128,40 @@ public class ZoneCommand implements WrappedCommand {
                 api.registerZone(zone);
                 api.scheduleSave();
                 api.updateCache();
-                messenger.sendMessage("A zone with the id '" + id + "' has been created.", sender);
+                messenger.sendMessage("A polyhedral zone with the id '" + id + "' has been created.", sender);
+            } else if (args[0].equalsIgnoreCase("createpoly")) { // CREATEPOLY
+                if (!(sender instanceof Player)) return false;
+                Player player = (Player) sender;
+                if (args.length < 2) {
+                    messenger.sendMessage("/zone createpoly <zone_id>", sender);
+                    return true;
+                }
+                List<Location> locations = api.getPolywandPositions(player);
+                if (locations.size() < 4) {
+                    messenger.sendMessage("Please set at least 4 zone vertices using a zone polywand first.", player);
+                    return true;
+                }
+                World world = locations.get(0).getWorld();
+                for (Location location : locations) {
+                    if (location.getWorld() != world || location.distanceSquared(locations.get(0)) > (config.maxZoneDiameter * config.maxZoneDiameter)) {
+                        messenger.sendMessage("The selected area is larger than " + config.maxZoneDiameter + "×" + config.maxZoneDiameter + " blocks in diameter.", player);
+                        return true;
+                    }
+                }
+                String id = args[1];
+                if (api.getZone(id) != null) {
+                    messenger.sendMessage("A zone with the id '" + id + "' already exists.", sender);
+                    return true;
+                }
+                PolyhedralZone zone = PolyhedralZone.createZone(player, id, locations.toArray(new Location[0]));
+                if (!player.isOp() && !api.canCreateZone(zone, player)) {
+                    messenger.sendMessage("This zone conflicts with others that you are unable to edit or override.", player);
+                    return true;
+                }
+                api.registerZone(zone);
+                api.scheduleSave();
+                api.updateCache();
+                messenger.sendMessage("A polyhedral zone with the id '" + id + "' has been created.", sender);
             } else if (args[0].equalsIgnoreCase("delete")) {
                 if (args.length < 2) {
                     messenger.sendMessage("/zone delete <zone_id>", sender);
@@ -202,7 +233,18 @@ public class ZoneCommand implements WrappedCommand {
                 api.updateCache();
             } else if (args[0].equalsIgnoreCase("info")) {
                 if (args.length < 2) {
-                    messenger.sendMessage("/zone info <zone_id>", sender);
+                    if (!(sender instanceof Player)) return false;
+                    List<Zone> zones = api.getZones(((Player) sender).getLocation());
+                    if (zones.isEmpty()) {
+                        messenger.sendMessage("There are no zones at your location.", sender);
+                    } else {
+                        List<String> names = new ArrayList<>();
+                        zones.forEach(zone -> names.add(zone.getKey().toString()));
+                        messenger.sendMessage(new ComponentBuilder("Zones at your location:")
+                                .append(System.lineSeparator())
+                                .append(messenger.getBullets(names.toArray(new String[0])))
+                                .create(), sender);
+                    }
                     return true;
                 }
                 String id = args[1];
@@ -255,6 +297,8 @@ public class ZoneCommand implements WrappedCommand {
                 }
                 if (zone instanceof CuboidalZone)
                     ((CuboidalZone) zone).showBounds();
+                else if (zone instanceof PolyhedralZone)
+                    ((PolyhedralZone) zone).showBounds();
             } else if (args[0].equalsIgnoreCase("list")) {
                 if (api.getZoneKeys().isEmpty()) {
                     messenger.sendMessage("No zones have been defined.", sender);
@@ -342,7 +386,7 @@ public class ZoneCommand implements WrappedCommand {
                     .append(System.lineSeparator())
                     .append(messenger.getBullets(
                             "/zone list",
-                            "/zone info <zone_id>",
+                            "/zone info [zone_id]",
                             "/zone show <zone_id>",
                             "/zone create <zone_id>",
                             "/zone delete <zone_id>",

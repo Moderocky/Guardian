@@ -1,6 +1,6 @@
 name: 'Guardian'
 main: com.moderocky.guardian.Guardian
-version: '1.0.4'
+version: '1.0.5'
 author: Moderocky
 api-version: '1.15'
 website: 'http://moderocky.com/community'

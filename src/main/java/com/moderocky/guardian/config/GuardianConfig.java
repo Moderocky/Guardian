@@ -12,6 +12,7 @@ import org.bukkit.permissions.PermissionDefault;
 import org.bukkit.persistence.PersistentDataType;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Arrays;
 import java.util.Collections;
 
 public class GuardianConfig implements Config {
@@ -24,10 +25,20 @@ public class GuardianConfig implements Config {
 
     @Configurable(section = "wand")
     @Configurable.Bounded(minValue = 0, maxValue = 999999999)
-    public int modelData = 102;
+    public int wandModelData = 102;
+
+    @Configurable(section = "wand")
+    public Material polywandMaterial = Material.DEBUG_STICK;
+
+    @Configurable(section = "wand")
+    @Configurable.Bounded(minValue = 0, maxValue = 999999999)
+    public int polywandModelData = 103;
 
     @Configurable(section = "wand")
     public String setPosition = "Set Zone Position #%s";
+
+    @Configurable(section = "wand")
+    public String clearPosition = "Cleared Zone Positions";
 
     @Configurable(section = "zone")
     @Configurable.Comment(text = {
@@ -76,11 +87,24 @@ public class GuardianConfig implements Config {
 
     public ItemStack getWand() {
         return new ItemFactory(wandMaterial, 1, itemMeta -> {
-            itemMeta.setCustomModelData(modelData);
+            itemMeta.setCustomModelData(wandModelData);
             itemMeta.setDisplayName("§6Zone Wand");
+            itemMeta.setLore(Arrays.asList("§7LClick to set Pos #1", "§7RClick to set Pos #2"));
             itemMeta.addEnchant(Enchantment.VANISHING_CURSE, 1, true);
             itemMeta.setDestroyableKeys(Collections.emptyList());
             itemMeta.getPersistentDataContainer().set(Guardian.getNamespacedKey("wand"), PersistentDataType.BYTE, (byte) 1);
+            itemMeta.addItemFlags(ItemFlag.values());
+        }).create();
+    }
+
+    public ItemStack getPolywand() {
+        return new ItemFactory(wandMaterial, 1, itemMeta -> {
+            itemMeta.setCustomModelData(wandModelData);
+            itemMeta.setDisplayName("§6Zone Polywand");
+            itemMeta.setLore(Arrays.asList("§7LClick to add a vertex", "§7RClick to reset vertices"));
+            itemMeta.addEnchant(Enchantment.VANISHING_CURSE, 1, true);
+            itemMeta.setDestroyableKeys(Collections.emptyList());
+            itemMeta.getPersistentDataContainer().set(Guardian.getNamespacedKey("polywand"), PersistentDataType.BYTE, (byte) 1);
             itemMeta.addItemFlags(ItemFlag.values());
         }).create();
     }

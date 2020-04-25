@@ -15,6 +15,7 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
+import org.bukkit.event.player.PlayerEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.permissions.Permission;
 import org.bukkit.permissions.PermissionDefault;
@@ -90,9 +91,20 @@ public class GuardianAPI {
         return config.getWand();
     }
 
+    public ItemStack getPolywand() {
+        return config.getPolywand();
+    }
+
     public boolean isWand(ItemStack itemStack) {
         PersistentDataContainer container = itemStack.getItemMeta().getPersistentDataContainer();
         NamespacedKey key = Guardian.getNamespacedKey("wand");
+        Byte bi = container.get(key, PersistentDataType.BYTE);
+        return bi != null && bi == 1;
+    }
+
+    public boolean isPolywand(ItemStack itemStack) {
+        PersistentDataContainer container = itemStack.getItemMeta().getPersistentDataContainer();
+        NamespacedKey key = Guardian.getNamespacedKey("polywand");
         Byte bi = container.get(key, PersistentDataType.BYTE);
         return bi != null && bi == 1;
     }
@@ -156,6 +168,16 @@ public class GuardianAPI {
         }
     }
 
+    public List<Location> getPolywandPositions(Player player) {
+        String string = player.getPersistentDataContainer().get(Guardian.getNamespacedKey("polywand_pos"), PersistentDataType.STRING);
+        if (string == null || string.length() < 1) return new ArrayList<>();
+        List<Location> locations = new ArrayList<>();
+        for (String s : string.split("/")) {
+            locations.add(deserialisePosition(s));
+        }
+        return locations;
+    }
+
     public void denyEvent(Player player) {
         if (config.actionDenyMessage != null)
             player.sendActionBar(config.actionDenyMessage);
@@ -164,16 +186,26 @@ public class GuardianAPI {
     public void displayBox(Player player) {
         Location l1 = getWandPosition(player, 1);
         Location l2 = getWandPosition(player, 2);
-        if (l1 == null || l2 == null || l1.getWorld() != l2.getWorld() || l1.distance(l2) > 128) return;
-        double d = Math.max(0.25, Math.min(1, (l1.distance(l2) / 128 - l1.distance(l2))));
+        if (l1 == null || l2 == null || l1.getWorld() != l2.getWorld() || l1.distanceSquared(l2) > (config.maxZoneDiameter*config.maxZoneDiameter)) return;
+        double d = Math.max(0.25, Math.min(1, (l1.distanceSquared(l2) / ((config.maxZoneDiameter*config.maxZoneDiameter) - l1.distanceSquared(l2)))));
         ParticleUtils.drawBox(Particle.END_ROD, null, BoundingBox.of(l1, l2), l1.getWorld(), d);
         highlightBlock(l1.getBlock(), Particle.FALLING_DUST, Material.REDSTONE_BLOCK.createBlockData());
         highlightBlock(l2.getBlock(), Particle.FALLING_DUST, Material.LAPIS_BLOCK.createBlockData());
     }
 
+    public void displayPolyBox(Player player) {
+        List<Location> locations = getPolywandPositions(player);
+        ParticleUtils.drawHash(Particle.END_ROD, 0.25, locations.toArray(new Location[0]));
+        locations.forEach(location -> highlightBlock(location.getBlock(), Particle.FALLING_DUST, Material.REDSTONE_BLOCK.createBlockData()));
+    }
+
     public void displayBox(BoundingBox boundingBox, World world, Player player) {
 //        ParticleUtils.drawHash(Particle.END_ROD, 0.25, boundingBox, world);
         ParticleUtils.drawBox(Particle.END_ROD, null, boundingBox, world, 0.25);
+    }
+
+    public void displayBox(BoundingBox boundingBox, World world, Particle particle, @Nullable Object data) {
+        ParticleUtils.drawBox(particle, data, boundingBox, world, 0.25);
     }
 
     public void highlightBlock(Block block, Particle particle, @Nullable Object data) {
@@ -199,7 +231,7 @@ public class GuardianAPI {
     }
 
     public boolean canCreateZone(Zone zone, Player player) {
-        for (NamespacedKey nearbyZone : getNearbyZones(zone.getDistrict())) {
+        for (NamespacedKey nearbyZone : getZones(zone.getWorld())) {
             if (zoneMap.get(nearbyZone).overlaps(zone) && !zoneMap.get(nearbyZone).canEdit(player.getUniqueId()))
                 return false;
         }
@@ -239,8 +271,18 @@ public class GuardianAPI {
     public @NotNull List<Zone> getZones(Location location) {
         List<Zone> list = new ArrayList<>();
         for (Zone zone : getZones()) {
-            if (location.distance(zone.getLocation()) > zone.getRadius()) continue;
+            if (location.getWorld() != zone.getWorld()) continue;
+            if (location.distanceSquared(zone.getLocation()) > (zone.getRadius() * zone.getRadius())) continue;
             if (zone.isInside(location)) list.add(zone);
+            if (zone instanceof Parent) {
+                Parent<?> parent = (Parent<?>) zone;
+                if (parent.hasChildren()) {
+                    for (Zone child : parent.getChildren()) {
+                        if (location.distanceSquared(child.getLocation()) > (child.getRadius() * child.getRadius())) continue;
+                        if (child.isInside(location)) list.add(child);
+                    }
+                }
+            }
         }
         return list;
     }
@@ -282,7 +324,7 @@ public class GuardianAPI {
         worldCache.clear();
     }
 
-    private void addCache(Zone zone) {
+    protected void addCache(Zone zone) {
         {
             List<NamespacedKey> keys = worldCache.getOrDefault(zone.getWorld(), new ArrayList<>());
             if (!keys.contains(zone.getKey())) keys.add(zone.getKey());

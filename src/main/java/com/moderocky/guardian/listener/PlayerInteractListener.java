@@ -36,20 +36,38 @@ public class PlayerInteractListener implements CompleteListener {
         if (block == null) return;
         if (event.getItem() == null) return;
         ItemStack itemStack = event.getItem();
-        if (!api.isWand(itemStack)) return;
-        event.setCancelled(true);
+        if (api.isWand(itemStack)) {
+            event.setCancelled(true);
 
-        Location location = block.getLocation().add(0.5, 0.5, 0.5).add(event.getBlockFace().getDirection().normalize().multiply(0.5));
-        if (event.getAction() == Action.LEFT_CLICK_BLOCK) {
-            player.getPersistentDataContainer().set(Guardian.getNamespacedKey("wand_pos_1"), PersistentDataType.STRING, api.serialisePosition(block.getLocation()));
-            location.getWorld().spawnParticle(Particle.BLOCK_DUST, location, 12, Material.REDSTONE_BLOCK.createBlockData());
-            player.sendActionBar(config.setPosition.replace("%s", "1"));
-        } else if (event.getAction() == Action.RIGHT_CLICK_BLOCK) {
-            player.getPersistentDataContainer().set(Guardian.getNamespacedKey("wand_pos_2"), PersistentDataType.STRING, api.serialisePosition(block.getLocation()));
-            location.getWorld().spawnParticle(Particle.BLOCK_DUST, location, 12, Material.LAPIS_BLOCK.createBlockData());
-            player.sendActionBar(config.setPosition.replace("%s", "2"));
+            Location location = block.getLocation().add(0.5, 0.5, 0.5).add(event.getBlockFace().getDirection().normalize().multiply(0.5));
+            if (event.getAction() == Action.LEFT_CLICK_BLOCK) {
+                player.getPersistentDataContainer().set(Guardian.getNamespacedKey("wand_pos_1"), PersistentDataType.STRING, api.serialisePosition(block.getLocation()));
+                location.getWorld().spawnParticle(Particle.BLOCK_DUST, location, 12, Material.REDSTONE_BLOCK.createBlockData());
+                player.sendActionBar(config.setPosition.replace("%s", "1"));
+            } else if (event.getAction() == Action.RIGHT_CLICK_BLOCK) {
+                player.getPersistentDataContainer().set(Guardian.getNamespacedKey("wand_pos_2"), PersistentDataType.STRING, api.serialisePosition(block.getLocation()));
+                location.getWorld().spawnParticle(Particle.BLOCK_DUST, location, 12, Material.LAPIS_BLOCK.createBlockData());
+                player.sendActionBar(config.setPosition.replace("%s", "2"));
+            }
+            api.displayBox(player);
+        } else if (api.isPolywand(itemStack)) {
+            event.setCancelled(true);
+
+            Location location = block.getLocation().add(0.5, 0.5, 0.5).add(event.getBlockFace().getDirection().normalize().multiply(0.5));
+            if (event.getAction() == Action.LEFT_CLICK_BLOCK) {
+                String des = player.getPersistentDataContainer().get(Guardian.getNamespacedKey("polywand_pos"), PersistentDataType.STRING);
+                if (des == null) des = "";
+                if (des.length() > 0) des = des + "/" + api.serialisePosition(block.getLocation());
+                else des = api.serialisePosition(block.getLocation());
+                player.getPersistentDataContainer().set(Guardian.getNamespacedKey("polywand_pos"), PersistentDataType.STRING, des);
+                location.getWorld().spawnParticle(Particle.BLOCK_DUST, location, 12, Material.REDSTONE_BLOCK.createBlockData());
+                player.sendActionBar(config.setPosition.replace("%s", des.split("/").length + ""));
+            } else if (event.getAction() == Action.RIGHT_CLICK_BLOCK) {
+                player.getPersistentDataContainer().set(Guardian.getNamespacedKey("polywand_pos"), PersistentDataType.STRING, "");
+                player.sendActionBar(config.clearPosition);
+            }
+            api.displayPolyBox(player);
         }
-        api.displayBox(player);
     }
 
     @EventHandler(priority = EventPriority.LOW)

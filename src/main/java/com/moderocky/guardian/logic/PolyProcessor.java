@@ -1,0 +1,274 @@
+package com.moderocky.guardian.logic;
+
+import org.bukkit.Location;
+import org.bukkit.World;
+import org.bukkit.util.BoundingBox;
+import org.jetbrains.annotations.NotNull;
+
+import java.util.ArrayList;
+import java.util.List;
+
+public class PolyProcessor {
+
+    private final double measurementError = 0.001;
+    private double x0, x1, y0, y1, z0, z1;
+    private List<Polygon> polygons;
+    private List<Plane> planes;
+    private int faceCount;
+    private double maxDist;
+    private final Polyhedron polyhedron;
+
+    public PolyProcessor(@NotNull Polyhedron polyhedron) {
+        this.polyhedron = polyhedron;
+        this.setHedralBoundary(polyhedron);
+        this.setHedralUnitError(polyhedron);
+        this.setConvexFaces(polyhedron);
+    }
+
+    public double getMinX() {
+        return this.x0;
+    }
+
+    public double getMaxX() {
+        return this.x1;
+    }
+
+    public double getMinY() {
+        return this.y0;
+    }
+
+    public double getMaxY() {
+        return this.y1;
+    }
+
+    public double getMinZ() {
+        return this.z0;
+    }
+
+    public double getMaxZ() {
+        return this.z1;
+    }
+
+    public List<Polygon> getPolygons() {
+        return this.polygons;
+    }
+
+    public List<Plane> getPlanes() {
+        return this.planes;
+    }
+
+    public int getFaceCount() {
+        return this.faceCount;
+    }
+
+    public boolean isInside(Vertex vertex) {
+        for (int i = 0; i < this.faceCount; i++) {
+
+            double dis = Plane.multiple(vertex, this.planes.get(i));
+
+            // If the point is in the same half space with normal vector for any face of the cube,
+            // then it is outside of the 3D polygon
+            if (dis > 0) {
+                return false;
+            }
+
+        }
+
+        // If the point is in the opposite half space with normal vector for all 6 faces,
+        // then it is inside of the 3D polygon
+        return true;
+    }
+
+    public boolean isInside(double x, double y, double z) {
+        return isInside(new Vertex(x, y, z));
+    }
+
+    private void setHedralUnitError(Polyhedron polyhedron) {
+        this.maxDist = ((Math.abs(this.x0) + Math.abs(this.x1) +
+                Math.abs(this.y0) + Math.abs(this.y1) +
+                Math.abs(this.z0) + Math.abs(this.z1)) / 6 * measurementError);
+    }
+
+    private void setHedralBoundary(Polyhedron polyhedron) {
+        List<Vertex> vertices = polyhedron.getVertices();
+
+        int n = polyhedron.getVertexCount();
+
+        double xmin, xmax, ymin, ymax, zmin, zmax;
+
+        xmin = xmax = vertices.get(0).getX();
+        ymin = ymax = vertices.get(0).getY();
+        zmin = zmax = vertices.get(0).getZ();
+
+        for (int i = 1; i < n; i++) {
+            if (vertices.get(i).getX() < xmin) xmin = vertices.get(i).getX();
+            if (vertices.get(i).getY() < ymin) ymin = vertices.get(i).getY();
+            if (vertices.get(i).getZ() < zmin) zmin = vertices.get(i).getZ();
+            if (vertices.get(i).getX() > xmax) xmax = vertices.get(i).getX();
+            if (vertices.get(i).getY() > ymax) ymax = vertices.get(i).getY();
+            if (vertices.get(i).getZ() > zmax) zmax = vertices.get(i).getZ();
+        }
+
+        this.x0 = xmin;
+        this.x1 = xmax;
+        this.y0 = ymin;
+        this.y1 = ymax;
+        this.z0 = zmin;
+        this.z1 = zmax;
+    }
+
+    private void setConvexFaces(Polyhedron polyhedron) {
+
+        List<Polygon> polygons = new ArrayList<>();
+
+        List<Plane> facePlanes = new ArrayList<>();
+
+        int numberOfFaces;
+
+        double maxError = this.maxDist;
+
+        // vertices of 3D polyhedron
+        List<Vertex> vertices = polyhedron.getVertices();
+
+        int n = polyhedron.getVertexCount();
+
+        // vertices indexes for all polygons
+        // vertices index is the original index value in the input polyhedron
+        List<List<Integer>> faceVerticeIndex = new ArrayList<>();
+
+        // face planes for all polygons
+        List<Plane> planes = new ArrayList<>();
+
+        for (int i = 0; i < n; i++) {
+            // triangle point 1
+            Vertex v1 = vertices.get(i);
+
+            for (int j = i + 1; j < n; j++) {
+                // triangle point 2
+                Vertex v2 = vertices.get(j);
+
+                for (int k = j + 1; k < n; k++) {
+                    // triangle point 3
+                    Vertex v3 = vertices.get(k);
+
+                    Plane trianglePlane = new Plane(v1, v2, v3);
+
+                    int onLeftCount = 0;
+                    int onRightCount = 0;
+
+                    // indexes of points that lie in same plane with face triangle plane
+                    List<Integer> pointInSamePlaneIndex = new ArrayList<Integer>();
+
+                    for (int l = 0; l < n; l++) {
+
+                        // any point other than the 3 triangle points
+                        if (l != i && l != j && l != k) {
+                            Vertex vertex = vertices.get(l);
+
+                            double distance = Plane.multiple(vertex, trianglePlane);
+
+                            // next point is in the triangle plane
+                            if (Math.abs(distance) < maxError) {
+                                pointInSamePlaneIndex.add(l);
+                            } else {
+                                if (distance < 0) {
+                                    onLeftCount++;
+                                } else {
+                                    onRightCount++;
+                                }
+
+                            }
+                        }
+                    }
+
+                    if (onLeftCount == 0 || onRightCount == 0) {
+                        List<Integer> verticeIndexInOneFace = new ArrayList<>();
+
+                        // triangle plane
+                        verticeIndexInOneFace.add(i);
+                        verticeIndexInOneFace.add(j);
+                        verticeIndexInOneFace.add(k);
+
+                        int m = pointInSamePlaneIndex.size();
+
+                        if (m > 0) {
+                            verticeIndexInOneFace.addAll(pointInSamePlaneIndex);
+                        }
+
+                        // if verticeIndexInOneFace is a new face, 
+                        // add it in the faceVerticeIndex list,
+                        // add the trianglePlane in the face plane list planes
+                        if (!LogicUtils.containsList(faceVerticeIndex, verticeIndexInOneFace)) {
+                            faceVerticeIndex.add(verticeIndexInOneFace);
+
+                            if (onRightCount == 0) {
+                                planes.add(trianglePlane);
+                            } else {
+                                planes.add(Plane.negative(trianglePlane));
+                            }
+                        }
+
+                    } else {
+                        // possible reasons:
+                        // 1. the plane is not a face of a convex 3d polyhedron,
+                        //    it is a plane crossing the convex 3d polyhedron.
+                        // 2. the plane is a face of a concave 3d polyhedron
+                        
+                        // TODO
+                    }
+
+                } // k loop
+            } // j loop
+        } // i loop
+
+        // return number of polygons
+        numberOfFaces = faceVerticeIndex.size();
+
+        for (int i = 0; i < numberOfFaces; i++) {
+            // return face planes
+            facePlanes.add(new Plane(planes.get(i).getA(), planes.get(i).getB(), planes.get(i).getC(), planes.get(i).getD()));
+
+            List<Vertex> gp = new ArrayList<>();
+
+            List<Integer> vi = new ArrayList<>();
+
+            int count = faceVerticeIndex.get(i).size();
+            for (int j = 0; j < count; j++) {
+                vi.add(faceVerticeIndex.get(i).get(j));
+                gp.add(new Vertex(vertices.get(vi.get(j)).getX(),
+                        vertices.get(vi.get(j)).getY(),
+                        vertices.get(vi.get(j)).getZ()));
+            }
+
+            // return polygons
+            polygons.add(new Polygon(gp, vi));
+        }
+
+        this.polygons = polygons;
+        this.planes = facePlanes;
+        this.faceCount = numberOfFaces;
+    }
+
+    public double getMaxDist() {
+        return maxDist;
+    }
+
+    public double getMeasurementError() {
+        return measurementError;
+    }
+
+    public Polyhedron getPolyhedron() {
+        return polyhedron;
+    }
+
+    public BoundingBox getBoundingBox() {
+        return new BoundingBox(x0, y0, z0, x1, y1, z1);
+    }
+
+    public List<Location> getLocations(World world) {
+        return polyhedron.getLocations(world);
+    }
+    
+}
+
+

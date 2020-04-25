@@ -1,10 +1,10 @@
 package com.moderocky.guardian.api;
 
 import com.moderocky.guardian.Guardian;
-import com.moderocky.guardian.logic.PolyProcessor;
-import com.moderocky.guardian.logic.Polyhedron;
-import com.moderocky.guardian.logic.Vertex;
-import org.bukkit.*;
+import org.bukkit.Bukkit;
+import org.bukkit.Location;
+import org.bukkit.NamespacedKey;
+import org.bukkit.World;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.bukkit.util.BoundingBox;
@@ -16,7 +16,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
-public class CuboidalZone extends Zone implements Parent<CuboidalChild> {
+public class ResidentialZone extends Zone {
 
     private GuardianAPI api;
 
@@ -24,37 +24,38 @@ public class CuboidalZone extends Zone implements Parent<CuboidalChild> {
     private Location location;
     private UUID owner;
 
+    private Location homePos;
+
     private String name = null;
     private String description = null;
 
-    private final @NotNull List<CuboidalChild> children = new ArrayList<>();
-
-    public CuboidalZone(@NotNull NamespacedKey id) {
+    public ResidentialZone(@NotNull NamespacedKey id) {
         super(id);
         throw new IllegalArgumentException("This constructor may not be used!");
     }
 
-    public CuboidalZone(@NotNull String id, @NotNull BoundingBox boundingBox, @NotNull World world) {
+    public ResidentialZone(@NotNull String id, @NotNull BoundingBox boundingBox, @NotNull World world) {
         super(Guardian.getNamespacedKey(id));
         this.boundingBox = boundingBox;
         this.location = boundingBox.getCenter().toLocation(world);
+        this.homePos = location;
         api = Guardian.getApi();
     }
 
-    public CuboidalZone(@NotNull NamespacedKey id, @NotNull ConfigurationSection section) {
+    public ResidentialZone(@NotNull NamespacedKey id, @NotNull ConfigurationSection section) {
         super(id, section);
     }
 
-    public static CuboidalZone createZone(Player player, String id, Location l1, Location l2) {
+    public static ResidentialZone createZone(Player player, String id, Location l1, Location l2) {
         BoundingBox boundingBox = BoundingBox.of(l1, l2);
-        CuboidalZone zone = new CuboidalZone(id, boundingBox, l1.getWorld());
+        ResidentialZone zone = new ResidentialZone(id, boundingBox, l1.getWorld());
         zone.setOwner(player.getUniqueId());
         return zone;
     }
 
-    public static CuboidalZone createZone(String id, Location l1, Location l2) {
+    public static ResidentialZone createZone(String id, Location l1, Location l2) {
         BoundingBox boundingBox = BoundingBox.of(l1, l2);
-        CuboidalZone zone = new CuboidalZone(id, boundingBox, l1.getWorld());
+        ResidentialZone zone = new ResidentialZone(id, boundingBox, l1.getWorld());
         zone.setOwner(null);
         return zone;
     }
@@ -65,23 +66,16 @@ public class CuboidalZone extends Zone implements Parent<CuboidalChild> {
 
     @Override
     public <Z extends Zone> boolean overlaps(Z zone) {
-        if (zone instanceof CuboidalZone) return overlaps((CuboidalZone) zone);
-        if (zone instanceof PolyhedralZone) return overlaps((PolyhedralZone) zone);
+        if (zone instanceof ResidentialZone) return overlaps((ResidentialZone) zone);
         else return super.overlaps(zone);
     }
-    public boolean overlaps(PolyhedralZone zone) {
-        for (Vertex vertex : zone.getPolyhedron().getVertices()) {
-            if (getBoundingBox().contains(vertex.toVector())) return true;
-        }
-        return false;
+
+    public boolean overlaps(ResidentialZone cuboidalZone) {
+        return cuboidalZone.getBoundingBox().overlaps(boundingBox);
     }
 
-    public boolean overlaps(CuboidalZone zone) {
-        return zone.getBoundingBox().overlaps(boundingBox);
-    }
-
-    public boolean eclipses(CuboidalZone zone) {
-        return overlaps(zone) && boundingBox.contains(zone.getBoundingBox());
+    public boolean eclipses(ResidentialZone cuboidalZone) {
+        return overlaps(cuboidalZone) && boundingBox.contains(cuboidalZone.getBoundingBox());
     }
 
     public @Nullable UUID getOwner() {
@@ -125,11 +119,6 @@ public class CuboidalZone extends Zone implements Parent<CuboidalChild> {
 
     public void showBounds() {
         api.displayBox(getBoundingBox().clone().expand(0.05, 0.05, 0.05), getWorld(), null);
-        if (hasChildren()) {
-            for (CuboidalChild child : getChildren()) {
-                api.displayBox(child.getBoundingBox().clone().expand(0.05, 0.05, 0.05), getWorld(), Particle.VILLAGER_HAPPY, null);
-            }
-        }
     }
 
     @Override
@@ -138,7 +127,8 @@ public class CuboidalZone extends Zone implements Parent<CuboidalChild> {
         World world = getWorld();
         Location l1 = boundingBox.getMin().toLocation(world);
         Location l2 = boundingBox.getMax().toLocation(world);
-        section.set("location", api.serialisePosition(getLocation()));
+        section.set("location", api.serialisePosition(location));
+        section.set("home_pos", api.serialisePosition(homePos));
         section.set("min", api.serialisePosition(l1));
         section.set("max", api.serialisePosition(l2));
         section.set("flags", getFlags());
@@ -148,13 +138,13 @@ public class CuboidalZone extends Zone implements Parent<CuboidalChild> {
         section.set("owner", getOwner() != null ? getOwner().toString() : null);
         section.set("name", name);
         section.set("desc", description == null ? null : Arrays.asList(description.split("\n")));
-        saveChildren(section);
     }
 
     @Override
     public void load(@NotNull ConfigurationSection section) {
         api = Guardian.getApi();
         this.location = api.deserialisePosition(section.getString("location"));
+        this.homePos = api.deserialisePosition(section.getString("home_pos"));
         Location l1 = api.deserialisePosition(section.getString("min"));
         Location l2 = api.deserialisePosition(section.getString("max"));
         this.boundingBox = BoundingBox.of(l1, l2);
@@ -173,7 +163,6 @@ public class CuboidalZone extends Zone implements Parent<CuboidalChild> {
         List<String> desc = section.getStringList("desc");
         if (desc.isEmpty()) description = null;
         else description = String.join(System.lineSeparator(), desc);
-        loadChildren(section);
     }
 
     @Override
@@ -196,28 +185,4 @@ public class CuboidalZone extends Zone implements Parent<CuboidalChild> {
         this.name = s;
     }
 
-    @Override
-    public @NotNull List<CuboidalChild> getChildren() {
-        return children;
-    }
-
-    @Override
-    public boolean hasChildren() {
-        return children != null && !children.isEmpty();
-    }
-
-    @Override
-    public void addChild(@NotNull CuboidalChild child) {
-        if (!children.contains(child)) children.add(child);
-    }
-
-    @Override
-    public void removeChild(@NotNull CuboidalChild child) {
-        children.remove(child);
-    }
-
-    @Override
-    public void clearChildren() {
-        children.clear();
-    }
 }

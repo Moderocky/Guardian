@@ -99,10 +99,13 @@ public class ParticleUtils {
     }
 
     public static void drawHash(Particle particle, double distance, Location... locations) {
+        if (locations.length < 1) return;
+        World world = locations[0].getWorld();
         List<Location> list = new ArrayList<>(Arrays.asList(locations));
         HashMap<Location, AtomicInteger> checker = new HashMap<>();
         list.forEach(location -> checker.put(location, new AtomicInteger(0)));
         for (Location location : list) {
+            if (location.getWorld() != world) continue;
             List<Location> locs = new ArrayList<>(list);
             locs.remove(location);
             locs.forEach(l -> {

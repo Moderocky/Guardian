@@ -1,6 +1,7 @@
 package com.moderocky.guardian;
 
 import com.moderocky.guardian.api.GuardianAPI;
+import com.moderocky.guardian.command.PolywandCommand;
 import com.moderocky.guardian.command.WandCommand;
 import com.moderocky.guardian.command.ZoneCommand;
 import com.moderocky.guardian.config.GuardianConfig;
@@ -59,6 +60,7 @@ public class Guardian extends Plugin {
         List<Permission> permissions = new ArrayList<>();
 
         permissions.add(new Permission("guardian.command.wand", "Wand command permission.", PermissionDefault.OP, null));
+        permissions.add(new Permission("guardian.command.polywand", "Wand command permission.", PermissionDefault.OP, null));
         permissions.add(new Permission("guardian.command.zone", "Zone command permission.", PermissionDefault.OP, null));
         permissions.add(new Permission("guardian.command.teleport", "Zone teleport permission.", PermissionDefault.OP, null));
 
@@ -87,6 +89,7 @@ public class Guardian extends Plugin {
     protected void registerCommands() {
         register(
                 new WandCommand(),
+                new PolywandCommand(),
                 new ZoneCommand()
         );
     }
