@@ -66,16 +66,12 @@ public class PolyProcessor {
 
             double dis = Plane.multiple(vertex, this.planes.get(i));
 
-            // If the point is in the same half space with normal vector for any face of the cube,
-            // then it is outside of the 3D polygon
             if (dis > 0) {
                 return false;
             }
 
         }
 
-        // If the point is in the opposite half space with normal vector for all 6 faces,
-        // then it is inside of the 3D polygon
         return true;
     }
 
@@ -118,56 +114,32 @@ public class PolyProcessor {
     }
 
     private void setConvexFaces(Polyhedron polyhedron) {
-
         List<Polygon> polygons = new ArrayList<>();
-
         List<Plane> facePlanes = new ArrayList<>();
-
-        int numberOfFaces;
-
-        double maxError = this.maxDist;
-
-        // vertices of 3D polyhedron
+        List<List<Integer>> faceVertexIndex = new ArrayList<>();
+        List<Plane> planes = new ArrayList<>();
         List<Vertex> vertices = polyhedron.getVertices();
-
+        int numberOfFaces;
+        double maxError = this.maxDist;
         int n = polyhedron.getVertexCount();
 
-        // vertices indexes for all polygons
-        // vertices index is the original index value in the input polyhedron
-        List<List<Integer>> faceVerticeIndex = new ArrayList<>();
-
-        // face planes for all polygons
-        List<Plane> planes = new ArrayList<>();
-
         for (int i = 0; i < n; i++) {
-            // triangle point 1
             Vertex v1 = vertices.get(i);
-
             for (int j = i + 1; j < n; j++) {
-                // triangle point 2
                 Vertex v2 = vertices.get(j);
-
                 for (int k = j + 1; k < n; k++) {
-                    // triangle point 3
                     Vertex v3 = vertices.get(k);
 
                     Plane trianglePlane = new Plane(v1, v2, v3);
-
                     int onLeftCount = 0;
                     int onRightCount = 0;
-
-                    // indexes of points that lie in same plane with face triangle plane
-                    List<Integer> pointInSamePlaneIndex = new ArrayList<Integer>();
+                    List<Integer> pointInSamePlaneIndex = new ArrayList<>();
 
                     for (int l = 0; l < n; l++) {
-
-                        // any point other than the 3 triangle points
                         if (l != i && l != j && l != k) {
                             Vertex vertex = vertices.get(l);
-
                             double distance = Plane.multiple(vertex, trianglePlane);
 
-                            // next point is in the triangle plane
                             if (Math.abs(distance) < maxError) {
                                 pointInSamePlaneIndex.add(l);
                             } else {
@@ -182,24 +154,20 @@ public class PolyProcessor {
                     }
 
                     if (onLeftCount == 0 || onRightCount == 0) {
-                        List<Integer> verticeIndexInOneFace = new ArrayList<>();
+                        List<Integer> vertexIndexInOneFace = new ArrayList<>();
 
-                        // triangle plane
-                        verticeIndexInOneFace.add(i);
-                        verticeIndexInOneFace.add(j);
-                        verticeIndexInOneFace.add(k);
+                        vertexIndexInOneFace.add(i);
+                        vertexIndexInOneFace.add(j);
+                        vertexIndexInOneFace.add(k);
 
                         int m = pointInSamePlaneIndex.size();
 
                         if (m > 0) {
-                            verticeIndexInOneFace.addAll(pointInSamePlaneIndex);
+                            vertexIndexInOneFace.addAll(pointInSamePlaneIndex);
                         }
 
-                        // if verticeIndexInOneFace is a new face, 
-                        // add it in the faceVerticeIndex list,
-                        // add the trianglePlane in the face plane list planes
-                        if (!LogicUtils.containsList(faceVerticeIndex, verticeIndexInOneFace)) {
-                            faceVerticeIndex.add(verticeIndexInOneFace);
+                        if (!LogicUtils.containsList(faceVertexIndex, vertexIndexInOneFace)) {
+                            faceVertexIndex.add(vertexIndexInOneFace);
 
                             if (onRightCount == 0) {
                                 planes.add(trianglePlane);
@@ -209,38 +177,28 @@ public class PolyProcessor {
                         }
 
                     } else {
-                        // possible reasons:
-                        // 1. the plane is not a face of a convex 3d polyhedron,
-                        //    it is a plane crossing the convex 3d polyhedron.
-                        // 2. the plane is a face of a concave 3d polyhedron
-                        
                         // TODO
                     }
 
-                } // k loop
-            } // j loop
-        } // i loop
+                }
+            }
+        }
 
-        // return number of polygons
-        numberOfFaces = faceVerticeIndex.size();
+
+        numberOfFaces = faceVertexIndex.size();
 
         for (int i = 0; i < numberOfFaces; i++) {
-            // return face planes
             facePlanes.add(new Plane(planes.get(i).getA(), planes.get(i).getB(), planes.get(i).getC(), planes.get(i).getD()));
-
             List<Vertex> gp = new ArrayList<>();
-
             List<Integer> vi = new ArrayList<>();
-
-            int count = faceVerticeIndex.get(i).size();
+            int count = faceVertexIndex.get(i).size();
             for (int j = 0; j < count; j++) {
-                vi.add(faceVerticeIndex.get(i).get(j));
+                vi.add(faceVertexIndex.get(i).get(j));
                 gp.add(new Vertex(vertices.get(vi.get(j)).getX(),
                         vertices.get(vi.get(j)).getY(),
                         vertices.get(vi.get(j)).getZ()));
             }
 
-            // return polygons
             polygons.add(new Polygon(gp, vi));
         }
 
