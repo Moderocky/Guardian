@@ -1,13 +1,16 @@
-package com.moderocky.guardian.logic;
+package com.moderocky.guardian.logic.handler;
 
+import com.moderocky.guardian.logic.shape.Vertex;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.util.BoundingBox;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
+@SuppressWarnings("unchecked")
 public class LogicUtils {
 
     public static boolean containsList(List<List<Integer>> list, List<Integer> listItem) {
@@ -29,7 +32,7 @@ public class LogicUtils {
     }
 
     public static Vertex getMidpoint(Vertex start, Vertex end) {
-        return new Vertex(((start.getX() + end.getX())/2), ((start.getY() + end.getY())/2), ((start.getZ() + end.getZ())/2));
+        return new Vertex(((start.getX() + end.getX()) / 2), ((start.getY() + end.getY()) / 2), ((start.getZ() + end.getZ()) / 2));
     }
 
     public static List<Vertex> toVertices(List<Location> locations) {
@@ -73,6 +76,45 @@ public class LogicUtils {
             return BoundingBox.of(vertices[0].toVector(), vertices[1].toVector());
         }
         throw new IllegalArgumentException();
+    }
+
+    public static <X> List<X[]> getPairs(Collection<X> collection) {
+        List<X> list = new ArrayList<>(collection);
+        List<X[]> xes = new ArrayList<>();
+        for (int i = 0; i < list.size(); i++) {
+            for (int j = i + 1; j < list.size(); j++) {
+                xes.add((X[]) new Object[]{list.get(i), list.get(j)});
+            }
+        }
+        return xes;
+    }
+
+    public static <X> List<X[]> getTrios(Collection<X> collection) {
+        List<X> list = new ArrayList<>(collection);
+        List<X[]> xes = new ArrayList<>();
+        for (int i = 0; i < list.size(); i++) {
+            for (int j = i + 1; j < list.size(); j++) {
+                for (int k = i + 1; k < list.size(); k++) {
+                    xes.add((X[]) new Object[]{list.get(i), list.get(j), list.get(k)});
+                }
+            }
+        }
+        return xes;
+    }
+
+    public static <X> List<X[]> getQuads(Collection<X> collection) {
+        List<X> list = new ArrayList<>(collection);
+        List<X[]> xes = new ArrayList<>();
+        for (int i = 0; i < list.size(); i++) {
+            for (int j = i + 1; j < list.size(); j++) {
+                for (int k = i + 1; k < list.size(); k++) {
+                    for (int l = i + 1; l < list.size(); l++) {
+                        xes.add((X[]) new Object[]{list.get(i), list.get(j), list.get(k), list.get(l)});
+                    }
+                }
+            }
+        }
+        return xes;
     }
 
 }

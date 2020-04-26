@@ -1,5 +1,9 @@
-package com.moderocky.guardian.logic;
+package com.moderocky.guardian.logic.handler;
 
+import com.moderocky.guardian.logic.shape.Plane;
+import com.moderocky.guardian.logic.shape.Polygon;
+import com.moderocky.guardian.logic.shape.Polyhedron;
+import com.moderocky.guardian.logic.shape.Vertex;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.util.BoundingBox;
@@ -11,12 +15,12 @@ import java.util.List;
 public class PolyProcessor {
 
     private final double measurementError = 0.001;
+    private final Polyhedron polyhedron;
     private double x0, x1, y0, y1, z0, z1;
     private List<Polygon> polygons;
     private List<Plane> planes;
     private int faceCount;
     private double maxDist;
-    private final Polyhedron polyhedron;
 
     public PolyProcessor(@NotNull Polyhedron polyhedron) {
         this.polyhedron = polyhedron;
@@ -133,7 +137,7 @@ public class PolyProcessor {
                     Plane trianglePlane = new Plane(v1, v2, v3);
                     int onLeftCount = 0;
                     int onRightCount = 0;
-                    List<Integer> pointInSamePlaneIndex = new ArrayList<>();
+                    List<Integer> planeIndices = new ArrayList<>();
 
                     for (int l = 0; l < n; l++) {
                         if (l != i && l != j && l != k) {
@@ -141,33 +145,32 @@ public class PolyProcessor {
                             double distance = Plane.multiple(vertex, trianglePlane);
 
                             if (Math.abs(distance) < maxError) {
-                                pointInSamePlaneIndex.add(l);
+                                planeIndices.add(l);
                             } else {
                                 if (distance < 0) {
                                     onLeftCount++;
                                 } else {
                                     onRightCount++;
                                 }
-
                             }
                         }
                     }
 
                     if (onLeftCount == 0 || onRightCount == 0) {
-                        List<Integer> vertexIndexInOneFace = new ArrayList<>();
+                        List<Integer> integers = new ArrayList<>();
 
-                        vertexIndexInOneFace.add(i);
-                        vertexIndexInOneFace.add(j);
-                        vertexIndexInOneFace.add(k);
+                        integers.add(i);
+                        integers.add(j);
+                        integers.add(k);
 
-                        int m = pointInSamePlaneIndex.size();
+                        int m = planeIndices.size();
 
                         if (m > 0) {
-                            vertexIndexInOneFace.addAll(pointInSamePlaneIndex);
+                            integers.addAll(planeIndices);
                         }
 
-                        if (!LogicUtils.containsList(faceVertexIndex, vertexIndexInOneFace)) {
-                            faceVertexIndex.add(vertexIndexInOneFace);
+                        if (!LogicUtils.containsList(faceVertexIndex, integers)) {
+                            faceVertexIndex.add(integers);
 
                             if (onRightCount == 0) {
                                 planes.add(trianglePlane);
@@ -175,15 +178,12 @@ public class PolyProcessor {
                                 planes.add(Plane.negative(trianglePlane));
                             }
                         }
-
                     } else {
                         // TODO
                     }
-
                 }
             }
         }
-
 
         numberOfFaces = faceVertexIndex.size();
 
@@ -226,7 +226,7 @@ public class PolyProcessor {
     public List<Location> getLocations(World world) {
         return polyhedron.getLocations(world);
     }
-    
+
 }
 
 

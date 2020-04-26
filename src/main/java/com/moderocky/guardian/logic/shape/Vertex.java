@@ -1,10 +1,12 @@
-package com.moderocky.guardian.logic;
+package com.moderocky.guardian.logic.shape;
 
+import com.moderocky.guardian.logic.ascendancy.IOrder0;
+import com.moderocky.guardian.logic.ascendancy.Polytope;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.util.Vector;
 
-public class Vertex {
+public class Vertex implements Polytope, IOrder0 {
 
     private double x;
     private double y;
@@ -29,7 +31,7 @@ public class Vertex {
     }
 
     public Vertex midpoint(Vertex vertex) {
-        return new Vertex(((this.getX() + vertex.getX())/2), ((this.getY() + vertex.getY())/2), ((this.getZ() + vertex.getZ())/2));
+        return new Vertex(((this.getX() + vertex.getX()) / 2), ((this.getY() + vertex.getY()) / 2), ((this.getZ() + vertex.getZ()) / 2));
     }
 
     public double distance(Vertex vertex) {
@@ -74,6 +76,34 @@ public class Vertex {
 
     public Vector toVector() {
         return new Vector(x, y, z);
+    }
+
+    @Override
+    public int getOrder() {
+        return 0;
+    }
+
+    @Override
+    public Vertex[] vertices() {
+        return new Vertex[]{this};
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Vertex)) return false;
+        Vertex vertex = (Vertex) o;
+        return vertex.x == x && vertex.y == y && vertex.z == z;
+    }
+
+    @Override
+    public int hashCode() {
+        return (int) (x + y + z);
+    }
+
+    @SuppressWarnings("all")
+    public Vertex clone() {
+        return new Vertex(x, y, z);
     }
 
 }

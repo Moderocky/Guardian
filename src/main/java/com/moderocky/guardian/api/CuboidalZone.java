@@ -1,9 +1,7 @@
 package com.moderocky.guardian.api;
 
 import com.moderocky.guardian.Guardian;
-import com.moderocky.guardian.logic.PolyProcessor;
-import com.moderocky.guardian.logic.Polyhedron;
-import com.moderocky.guardian.logic.Vertex;
+import com.moderocky.guardian.logic.shape.Vertex;
 import org.bukkit.*;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;

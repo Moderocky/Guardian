@@ -1,16 +1,13 @@
-package com.moderocky.guardian.logic;
+package com.moderocky.guardian.logic.shape;
 
 public class Plane {
 
     // Plane Equation: a * x + b * y + c * z + d = 0
 
-    private double a;
-    private double b;
-    private double c;
-    private double d;
-
-    public Plane() {
-    }
+    private final double a;
+    private final double b;
+    private final double c;
+    private final double d;
 
     public Plane(double a, double b, double c, double d) {
         this.a = a;
@@ -20,14 +17,10 @@ public class Plane {
     }
 
     public Plane(Vertex v1, Vertex v2, Vertex v3) {
+        Dion v = new Dion(v1, v2);
+        Dion u = new Dion(v1, v3);
+        Dion n = Dion.multiple(u, v);
 
-        Geodesic v = new Geodesic(v1, v2);
-
-        Geodesic u = new Geodesic(v1, v3);
-
-        Geodesic n = Geodesic.multiple(u, v);
-
-        // normal vector
         double a = n.getX();
         double b = n.getY();
         double c = n.getZ();

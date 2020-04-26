@@ -1,10 +1,10 @@
 package com.moderocky.guardian.api;
 
 import com.moderocky.guardian.Guardian;
-import com.moderocky.guardian.logic.LogicUtils;
-import com.moderocky.guardian.logic.PolyProcessor;
-import com.moderocky.guardian.logic.Polyhedron;
-import com.moderocky.guardian.logic.Vertex;
+import com.moderocky.guardian.logic.handler.LogicUtils;
+import com.moderocky.guardian.logic.handler.PolyProcessor;
+import com.moderocky.guardian.logic.shape.Polyhedron;
+import com.moderocky.guardian.logic.shape.Vertex;
 import com.moderocky.guardian.util.ParticleUtils;
 import org.bukkit.*;
 import org.bukkit.configuration.ConfigurationSection;

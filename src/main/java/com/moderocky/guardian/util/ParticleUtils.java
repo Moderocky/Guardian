@@ -1,5 +1,7 @@
 package com.moderocky.guardian.util;
 
+import com.moderocky.guardian.logic.shape.Dion;
+import com.moderocky.guardian.logic.shape.Polyhedron;
 import org.bukkit.Location;
 import org.bukkit.Particle;
 import org.bukkit.World;
@@ -117,6 +119,13 @@ public class ParticleUtils {
                     i.getAndIncrement();
                 }
             });
+        }
+    }
+
+    public static void drawHash(Particle particle, double distance, World world, Polyhedron polyhedron) {
+        Dion[] dions = polyhedron.dions();
+        for (Dion dion : dions) {
+            drawLine(particle, dion.getStart().toLocation(world), dion.getEnd().toLocation(world), distance);
         }
     }
 
