@@ -41,6 +41,24 @@ public class Polyhedron implements Polytope, IOrder3 {
         }
     }
 
+    public static Polyhedron createCuboid(Vertex min, Vertex max) {
+        List<Vertex> vertices = new ArrayList<>();
+        vertices.add(new Vertex(Math.min(min.getX(), max.getX()), Math.min(min.getY(), max.getY()), Math.min(min.getZ(), max.getZ())));
+        vertices.add(new Vertex(Math.min(min.getX(), max.getX()), Math.max(min.getY(), max.getY()), Math.min(min.getZ(), max.getZ())));
+        vertices.add(new Vertex(Math.min(min.getX(), max.getX()), Math.min(min.getY(), max.getY()), Math.max(min.getZ(), max.getZ())));
+        vertices.add(new Vertex(Math.min(min.getX(), max.getX()), Math.max(min.getY(), max.getY()), Math.max(min.getZ(), max.getZ())));
+        vertices.add(new Vertex(Math.max(min.getX(), max.getX()), Math.min(min.getY(), max.getY()), Math.min(min.getZ(), max.getZ())));
+        vertices.add(new Vertex(Math.max(min.getX(), max.getX()), Math.max(min.getY(), max.getY()), Math.min(min.getZ(), max.getZ())));
+        vertices.add(new Vertex(Math.max(min.getX(), max.getX()), Math.min(min.getY(), max.getY()), Math.max(min.getZ(), max.getZ())));
+        vertices.add(new Vertex(Math.max(min.getX(), max.getX()), Math.max(min.getY(), max.getY()), Math.max(min.getZ(), max.getZ())));
+        return new Polyhedron(vertices);
+    }
+
+    public static Polyhedron createCube(Vertex vertex, double diameter) {
+        Vertex end = new Vertex(vertex.getX() + diameter, vertex.getY() + diameter, vertex.getZ() + diameter);
+        return createCuboid(vertex, end);
+    }
+
     private void correctVertices(final List<Vertex> vertices) {
         List<Vertex> workingCopy = new ArrayList<>(vertices);
         workingCopy.forEach(vertex -> {
@@ -140,24 +158,6 @@ public class Polyhedron implements Polytope, IOrder3 {
             dions.add(new Dion(pair[0], pair[1]));
         }
         return dions.toArray(new Dion[0]);
-    }
-
-    public static Polyhedron createCuboid(Vertex min, Vertex max) {
-        List<Vertex> vertices = new ArrayList<>();
-        vertices.add(new Vertex(Math.min(min.getX(), max.getX()), Math.min(min.getY(), max.getY()), Math.min(min.getZ(), max.getZ())));
-        vertices.add(new Vertex(Math.min(min.getX(), max.getX()), Math.max(min.getY(), max.getY()), Math.min(min.getZ(), max.getZ())));
-        vertices.add(new Vertex(Math.min(min.getX(), max.getX()), Math.min(min.getY(), max.getY()), Math.max(min.getZ(), max.getZ())));
-        vertices.add(new Vertex(Math.min(min.getX(), max.getX()), Math.max(min.getY(), max.getY()), Math.max(min.getZ(), max.getZ())));
-        vertices.add(new Vertex(Math.max(min.getX(), max.getX()), Math.min(min.getY(), max.getY()), Math.min(min.getZ(), max.getZ())));
-        vertices.add(new Vertex(Math.max(min.getX(), max.getX()), Math.max(min.getY(), max.getY()), Math.min(min.getZ(), max.getZ())));
-        vertices.add(new Vertex(Math.max(min.getX(), max.getX()), Math.min(min.getY(), max.getY()), Math.max(min.getZ(), max.getZ())));
-        vertices.add(new Vertex(Math.max(min.getX(), max.getX()), Math.max(min.getY(), max.getY()), Math.max(min.getZ(), max.getZ())));
-        return new Polyhedron(vertices);
-    }
-
-    public static Polyhedron createCube(Vertex vertex, double diameter) {
-        Vertex end = new Vertex(vertex.getX() + diameter,vertex.getY() + diameter,vertex.getZ() + diameter);
-        return createCuboid(vertex, end);
     }
 
 }

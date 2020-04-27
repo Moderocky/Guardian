@@ -16,16 +16,13 @@ import java.util.UUID;
 
 public class CuboidalZone extends Zone implements Parent<CuboidalChild> {
 
+    private final @NotNull List<CuboidalChild> children = new ArrayList<>();
     private GuardianAPI api;
-
     private BoundingBox boundingBox;
     private Location location;
     private UUID owner;
-
     private String name = null;
     private String description = null;
-
-    private final @NotNull List<CuboidalChild> children = new ArrayList<>();
 
     public CuboidalZone(@NotNull NamespacedKey id) {
         super(id);
@@ -67,6 +64,7 @@ public class CuboidalZone extends Zone implements Parent<CuboidalChild> {
         if (zone instanceof PolyhedralZone) return overlaps((PolyhedralZone) zone);
         else return super.overlaps(zone);
     }
+
     public boolean overlaps(PolyhedralZone zone) {
         for (Vertex vertex : zone.getPolyhedron().getVertices()) {
             if (getBoundingBox().contains(vertex.toVector())) return true;

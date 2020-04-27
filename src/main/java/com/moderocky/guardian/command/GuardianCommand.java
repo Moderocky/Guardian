@@ -3,7 +3,6 @@ package com.moderocky.guardian.command;
 import com.moderocky.mask.template.WrappedCommand;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
-import org.bukkit.permissions.Permission;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

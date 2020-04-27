@@ -185,8 +185,9 @@ public class GuardianAPI {
     public void displayBox(Player player) {
         Location l1 = getWandPosition(player, 1);
         Location l2 = getWandPosition(player, 2);
-        if (l1 == null || l2 == null || l1.getWorld() != l2.getWorld() || l1.distanceSquared(l2) > (config.maxZoneDiameter*config.maxZoneDiameter)) return;
-        double d = Math.max(0.25, Math.min(1, (l1.distanceSquared(l2) / ((config.maxZoneDiameter*config.maxZoneDiameter) - l1.distanceSquared(l2)))));
+        if (l1 == null || l2 == null || l1.getWorld() != l2.getWorld() || l1.distanceSquared(l2) > (config.maxZoneDiameter * config.maxZoneDiameter))
+            return;
+        double d = Math.max(0.25, Math.min(1, (l1.distanceSquared(l2) / ((config.maxZoneDiameter * config.maxZoneDiameter) - l1.distanceSquared(l2)))));
         ParticleUtils.drawBox(Particle.END_ROD, null, BoundingBox.of(l1, l2), l1.getWorld(), d);
         highlightBlock(l1.getBlock(), Particle.FALLING_DUST, Material.REDSTONE_BLOCK.createBlockData());
         highlightBlock(l2.getBlock(), Particle.FALLING_DUST, Material.LAPIS_BLOCK.createBlockData());
@@ -277,7 +278,8 @@ public class GuardianAPI {
                 Parent<?> parent = (Parent<?>) zone;
                 if (parent.hasChildren()) {
                     for (Zone child : parent.getChildren()) {
-                        if (location.distanceSquared(child.getLocation()) > (child.getRadius() * child.getRadius())) continue;
+                        if (location.distanceSquared(child.getLocation()) > (child.getRadius() * child.getRadius()))
+                            continue;
                         if (child.isInside(location)) list.add(child);
                     }
                 }

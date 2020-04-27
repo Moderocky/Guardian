@@ -1,8 +1,6 @@
 package com.moderocky.guardian.api;
 
 import com.moderocky.guardian.Guardian;
-import com.moderocky.guardian.api.GuardianAPI;
-import com.moderocky.guardian.api.Zone;
 import org.bukkit.NamespacedKey;
 import org.bukkit.configuration.ConfigurationSection;
 import org.jetbrains.annotations.NotNull;

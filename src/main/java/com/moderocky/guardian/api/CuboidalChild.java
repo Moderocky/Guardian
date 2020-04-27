@@ -152,12 +152,12 @@ public class CuboidalChild extends CuboidalZone implements Child<CuboidalZone> {
     }
 
     @Override
-    public void setParent(@NotNull CuboidalZone parent) {
-        this.parent = parent;
+    public CuboidalZone getParent() {
+        return parent;
     }
 
     @Override
-    public CuboidalZone getParent() {
-        return parent;
+    public void setParent(@NotNull CuboidalZone parent) {
+        this.parent = parent;
     }
 }
