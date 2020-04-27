@@ -63,6 +63,7 @@ public class Guardian extends Plugin {
         permissions.add(new Permission("guardian.command.polywand", "Wand command permission.", PermissionDefault.OP, null));
         permissions.add(new Permission("guardian.command.zone", "Zone command permission.", PermissionDefault.OP, null));
         permissions.add(new Permission("guardian.command.teleport", "Zone teleport permission.", PermissionDefault.OP, null));
+        permissions.add(new Permission("guardian.zone.allow_oversized", "Zone teleport permission.", PermissionDefault.OP, null));
 
         permissions.forEach(permission -> Bukkit.getPluginManager().addPermission(permission));
     }

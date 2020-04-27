@@ -3,6 +3,7 @@ package com.moderocky.guardian.logic.shape;
 import com.moderocky.guardian.logic.ascendancy.IOrder2;
 import com.moderocky.guardian.logic.ascendancy.Polytope;
 import com.moderocky.guardian.logic.handler.LogicUtils;
+import com.moderocky.guardian.logic.handler.Plane;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;

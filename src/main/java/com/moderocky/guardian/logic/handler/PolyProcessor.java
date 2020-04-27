@@ -1,6 +1,5 @@
 package com.moderocky.guardian.logic.handler;
 
-import com.moderocky.guardian.logic.shape.Plane;
 import com.moderocky.guardian.logic.shape.Polygon;
 import com.moderocky.guardian.logic.shape.Polyhedron;
 import com.moderocky.guardian.logic.shape.Vertex;

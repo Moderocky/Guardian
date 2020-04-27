@@ -83,13 +83,13 @@ public class ZoneFlagsExpr extends SimpleExpression<String> {
                 if (strings == null) break;
                 zone.getFlags().forEach(zone::removeFlag);
                 for (String line : strings) {
-                    if (api.isFlag(line)) zone.addFlag(line);
+                    if (api.isProtectionFlag(line)) zone.addFlag(line);
                 }
                 break;
             case ADD:
                 if (strings == null) break;
                 for (String line : strings) {
-                    if (api.isFlag(line)) zone.addFlag(line);
+                    if (api.isProtectionFlag(line)) zone.addFlag(line);
                 }
                 break;
             case DELETE:

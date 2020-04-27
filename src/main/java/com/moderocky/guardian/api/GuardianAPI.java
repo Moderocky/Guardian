@@ -15,7 +15,6 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
-import org.bukkit.event.player.PlayerEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.permissions.Permission;
 import org.bukkit.permissions.PermissionDefault;
@@ -36,7 +35,7 @@ public class GuardianAPI {
     private final @NotNull HashMap<NamespacedKey, Zone> zoneMap = new HashMap<>();
     private final @NotNull HashMap<World, List<NamespacedKey>> worldCache = new HashMap<>();
     private final @NotNull HashMap<WorldDistrict, List<NamespacedKey>> worldDistrictCache = new HashMap<>();
-    private final @NotNull List<String> flags = new ArrayList<>();
+    private final @NotNull List<String> protectionFlags = new ArrayList<>();
     private final @NotNull HashMap<String, Boolean> eventResultCache = new HashMap<>();
     private final @NotNull HashMap<Class<Event>, EventMethRef> blindEventMap = new HashMap<>();
 
@@ -50,24 +49,24 @@ public class GuardianAPI {
     public void init() {
         config = Guardian.getInstance().getGuardianConfig();
 
-        flags.clear();
+        protectionFlags.clear();
         reload();
 
-        addFlag("mob_griefing", config.allowBasicFlags);
-        addFlag("mob_spawning", config.allowBasicFlags);
-        addFlag("break_blocks", config.allowBasicFlags);
-        addFlag("place_blocks", config.allowBasicFlags);
-        addFlag("damage_players", config.allowBasicFlags);
-        addFlag("damage_entities", config.allowBasicFlags);
-        addFlag("damage_vehicles", config.allowBasicFlags);
-        addFlag("open_containers", config.allowBasicFlags);
-        addFlag("pick_up_items", config.allowBasicFlags);
-        addFlag("interact_with_blocks", config.allowBasicFlags);
-        addFlag("interact_with_entities", config.allowBasicFlags);
-        addFlag("prevent_tree_growth", config.allowBasicFlags);
-        addFlag("prevent_commands", config.allowSpecialFlags);
-        addFlag("prevent_chat", config.allowSpecialFlags);
-        addFlag("prevent_teleport", config.allowSpecialFlags);
+        addProtectionFlag("mob_griefing", config.allowBasicFlags);
+        addProtectionFlag("mob_spawning", config.allowBasicFlags);
+        addProtectionFlag("break_blocks", config.allowBasicFlags);
+        addProtectionFlag("place_blocks", config.allowBasicFlags);
+        addProtectionFlag("damage_players", config.allowBasicFlags);
+        addProtectionFlag("damage_entities", config.allowBasicFlags);
+        addProtectionFlag("damage_vehicles", config.allowBasicFlags);
+        addProtectionFlag("open_containers", config.allowBasicFlags);
+        addProtectionFlag("pick_up_items", config.allowBasicFlags);
+        addProtectionFlag("interact_with_blocks", config.allowBasicFlags);
+        addProtectionFlag("interact_with_entities", config.allowBasicFlags);
+        addProtectionFlag("prevent_tree_growth", config.allowBasicFlags);
+        addProtectionFlag("prevent_commands", config.allowSpecialFlags);
+        addProtectionFlag("prevent_chat", config.allowSpecialFlags);
+        addProtectionFlag("prevent_teleport", config.allowSpecialFlags);
 
         Bukkit.getScheduler().runTaskTimerAsynchronously(Guardian.getInstance(), this::save, 300, (config.saveDelay * 20));
         Bukkit.getScheduler().runTaskTimerAsynchronously(Guardian.getInstance(), this::updateCache, 300, (config.actionCacheResetDelay * 20));
@@ -133,8 +132,8 @@ public class GuardianAPI {
      *
      * @param flag The flag id
      */
-    public void addFlag(String flag) {
-        flags.add(flag);
+    public void addProtectionFlag(String flag) {
+        protectionFlags.add(flag);
         Bukkit.getPluginManager().addPermission(new Permission("guardian.flag." + flag, PermissionDefault.TRUE));
     }
 
@@ -144,17 +143,17 @@ public class GuardianAPI {
      * @param flag The flag id
      * @param perm The permission default
      */
-    public void addFlag(String flag, PermissionDefault perm) {
-        flags.add(flag);
+    public void addProtectionFlag(String flag, PermissionDefault perm) {
+        protectionFlags.add(flag);
         Bukkit.getPluginManager().addPermission(new Permission("guardian.flag." + flag, perm));
     }
 
-    public boolean isFlag(String flag) {
-        return flags.contains(flag);
+    public boolean isProtectionFlag(String flag) {
+        return protectionFlags.contains(flag);
     }
 
-    public @NotNull List<String> getFlags() {
-        return new ArrayList<>(flags);
+    public @NotNull List<String> getProtectionFlags() {
+        return new ArrayList<>(protectionFlags);
     }
 
     public Location getWandPosition(Player player, int i) {
@@ -356,7 +355,6 @@ public class GuardianAPI {
 
     public void scheduleSave() {
         Bukkit.getScheduler().runTaskLaterAsynchronously(Guardian.getInstance(), this::save, 80L);
-//        save();
     }
 
     public void save() {

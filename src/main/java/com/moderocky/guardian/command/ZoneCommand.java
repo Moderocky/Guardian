@@ -88,7 +88,7 @@ public class ZoneCommand implements WrappedCommand {
             Bukkit.getOnlinePlayers().forEach(player -> list.add(player.getName()));
             return list;
         } else if (i == 3 && (args[0].equalsIgnoreCase("toggle"))) {
-            List<String> list = new ArrayList<>(api.getFlags());
+            List<String> list = new ArrayList<>(api.getProtectionFlags());
             list.removeIf(string -> !sender.hasPermission("guardian.flag." + string));
             return list;
         }
@@ -208,7 +208,7 @@ public class ZoneCommand implements WrappedCommand {
                     messenger.sendMessage("No zone with the id '" + id + "' can be found.", sender);
                     return true;
                 }
-                if (!api.isFlag(flag)) {
+                if (!api.isProtectionFlag(flag)) {
                     messenger.sendMessage("No flag with the id '" + id + "' is registered.", sender);
                     return true;
                 }

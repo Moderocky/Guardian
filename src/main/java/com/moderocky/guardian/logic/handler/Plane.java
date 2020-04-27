@@ -1,4 +1,7 @@
-package com.moderocky.guardian.logic.shape;
+package com.moderocky.guardian.logic.handler;
+
+import com.moderocky.guardian.logic.shape.Dion;
+import com.moderocky.guardian.logic.shape.Vertex;
 
 public class Plane {
 

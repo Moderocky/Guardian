@@ -1,7 +1,6 @@
 package com.moderocky.guardian.skript.expression;
 
 import ch.njol.skript.Skript;
-import ch.njol.skript.classes.Changer;
 import ch.njol.skript.doc.Description;
 import ch.njol.skript.doc.Examples;
 import ch.njol.skript.doc.Name;
@@ -11,15 +10,12 @@ import ch.njol.skript.lang.ExpressionType;
 import ch.njol.skript.lang.SkriptParser;
 import ch.njol.skript.lang.util.SimpleExpression;
 import ch.njol.util.Kleenean;
-import ch.njol.util.coll.CollectionUtils;
 import com.moderocky.guardian.Guardian;
 import com.moderocky.guardian.api.GuardianAPI;
-import com.moderocky.guardian.api.Zone;
 import org.bukkit.event.Event;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
-import java.util.Arrays;
 
 
 @Name("Registered Guardian Flags")
@@ -49,7 +45,7 @@ public class RegisteredFlagsExpr extends SimpleExpression<String> {
     @Override
     protected String[] get(@NotNull Event event) {
         GuardianAPI api = Guardian.getApi();
-        return api.getFlags().toArray(new String[0]);
+        return api.getProtectionFlags().toArray(new String[0]);
     }
 
     @Override
