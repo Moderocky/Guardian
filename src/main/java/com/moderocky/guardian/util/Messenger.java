@@ -10,7 +10,6 @@ import org.jetbrains.annotations.NotNull;
 
 public class Messenger {
 
-    private final @NotNull Guardian guardian;
     private @NotNull
     final BaseComponent[] prefix = new ComponentBuilder("")
             .color(ChatColor.WHITE)
@@ -25,7 +24,7 @@ public class Messenger {
             .create();
 
     public Messenger(@NotNull Guardian guardian) {
-        this.guardian = guardian;
+
     }
 
     public void sendMessage(String text, CommandSender... players) {
@@ -34,7 +33,7 @@ public class Messenger {
                 .append(TextComponent.fromLegacyText(text))
                 .create();
         for (CommandSender player : players) {
-            player.sendMessage(components);
+            player.spigot().sendMessage(components);
         }
     }
 
@@ -44,7 +43,7 @@ public class Messenger {
                 .append(text)
                 .create();
         for (CommandSender player : players) {
-            player.sendMessage(components);
+            player.spigot().sendMessage(components);
         }
     }
 

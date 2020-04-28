@@ -368,22 +368,7 @@ public class ZoneCommand extends Commander<CommandSender> implements WrappedComm
 
     @Override
     public @NotNull Consumer<CommandSender> getDefault() {
-        return sender -> {
-            ComponentBuilder builder = new ComponentBuilder("Zones Help:");
-            for (String pattern : getPatterns()) {
-                builder
-                        .append(System.lineSeparator())
-                        .reset()
-                        .append(" - /" + getCommand())
-                        .color(ChatColor.DARK_GRAY)
-                        .append(" ")
-                        .append(pattern)
-                        .event(new ClickEvent((pattern.contains("[") || pattern.contains("<")) ? ClickEvent.Action.SUGGEST_COMMAND : ClickEvent.Action.RUN_COMMAND, "/" + getCommand() + " " + pattern.replaceFirst("(<.*|\\[.*)", "")))
-                        .event(new HoverEvent(HoverEvent.Action.SHOW_TEXT, TextComponent.fromLegacyText((pattern.contains("[") || pattern.contains("<")) ? "Click to suggest." : "Click to run.", ChatColor.AQUA)))
-                        .color(ChatColor.GRAY);
-            }
-            messenger.sendMessage(builder.create(), sender);
-        };
+        return sender -> messenger.sendMessage(api.getCommandHelpMessage(this), sender);
     }
 
     private String convertCase(String string) {
@@ -405,7 +390,7 @@ public class ZoneCommand extends Commander<CommandSender> implements WrappedComm
 
     @Override
     public @NotNull String getUsage() {
-        return "/zone <create/delete> [id]";
+        return "/zone help";
     }
 
     @Override
@@ -435,11 +420,6 @@ public class ZoneCommand extends Commander<CommandSender> implements WrappedComm
 
     @Override
     public @Nullable List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String alias, @NotNull String[] args) {
-        List<String> strings = getTabCompletions(String.join(" ", args));
-        if (strings == null || strings.isEmpty()) return null;
-        final List<String> completions = new ArrayList<>();
-        StringUtil.copyPartialMatches(args[args.length - 1], strings, completions);
-        Collections.sort(completions);
-        return completions;
+        return api.getTabCompletions(this, args);
     }
 }

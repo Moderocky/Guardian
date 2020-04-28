@@ -6,9 +6,13 @@ import com.moderocky.guardian.listener.BlanketUncaughtListener;
 import com.moderocky.guardian.util.ParticleUtils;
 import com.moderocky.mask.annotation.DoNotInstantiate;
 import com.moderocky.mask.annotation.Internal;
+import com.moderocky.mask.command.Commander;
 import com.moderocky.mask.internal.utility.FileManager;
+import net.md_5.bungee.api.ChatColor;
+import net.md_5.bungee.api.chat.*;
 import org.bukkit.*;
 import org.bukkit.block.Block;
+import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -22,6 +26,7 @@ import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.RegisteredListener;
 import org.bukkit.util.BoundingBox;
+import org.bukkit.util.StringUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -254,6 +259,32 @@ public class GuardianAPI {
     public void removeZone(Zone zone) {
         zoneMap.remove(zone.getKey());
         removeCache(zone);
+    }
+
+    public BaseComponent[] getCommandHelpMessage(Commander<?> commander) {
+        ComponentBuilder builder = new ComponentBuilder("Command Help:");
+        for (String pattern : commander.getPatterns()) {
+            builder
+                    .append(System.lineSeparator())
+                    .reset()
+                    .append(" - /" + commander.getCommand())
+                    .color(net.md_5.bungee.api.ChatColor.DARK_GRAY)
+                    .append(" ")
+                    .append(pattern)
+                    .event(new ClickEvent((pattern.contains("[") || pattern.contains("<")) ? ClickEvent.Action.SUGGEST_COMMAND : ClickEvent.Action.RUN_COMMAND, "/" + commander.getCommand() + " " + pattern.replaceFirst("(<.*|\\[.*)", "")))
+                    .event(new HoverEvent(HoverEvent.Action.SHOW_TEXT, TextComponent.fromLegacyText((pattern.contains("[") || pattern.contains("<")) ? "Click to suggest." : "Click to run.", net.md_5.bungee.api.ChatColor.AQUA)))
+                    .color(ChatColor.GRAY);
+        }
+        return builder.create();
+    }
+
+    public List<String> getTabCompletions(Commander<?> commander, String[] args) {
+        List<String> strings = commander.getTabCompletions(String.join(" ", args));
+        if (strings == null || strings.isEmpty()) return null;
+        final List<String> completions = new ArrayList<>();
+        StringUtil.copyPartialMatches(args[args.length - 1], strings, completions);
+        Collections.sort(completions);
+        return completions;
     }
 
     public boolean exists(NamespacedKey key) {

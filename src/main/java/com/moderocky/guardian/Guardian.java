@@ -1,6 +1,7 @@
 package com.moderocky.guardian;
 
 import com.moderocky.guardian.api.GuardianAPI;
+import com.moderocky.guardian.command.GuardianCommand;
 import com.moderocky.guardian.command.PolywandCommand;
 import com.moderocky.guardian.command.WandCommand;
 import com.moderocky.guardian.command.ZoneCommand;
@@ -58,12 +59,12 @@ public class Guardian extends Plugin {
 
     private void registerPermissions() {
         List<Permission> permissions = new ArrayList<>();
-
+        permissions.add(new Permission("guardian.command.guardian", "Guardian command permission.", PermissionDefault.TRUE, null));
         permissions.add(new Permission("guardian.command.wand", "Wand command permission.", PermissionDefault.OP, null));
-        permissions.add(new Permission("guardian.command.polywand", "Wand command permission.", PermissionDefault.OP, null));
+        permissions.add(new Permission("guardian.command.polywand", "Polywand command permission.", PermissionDefault.OP, null));
         permissions.add(new Permission("guardian.command.zone", "Zone command permission.", PermissionDefault.OP, null));
         permissions.add(new Permission("guardian.command.teleport", "Zone teleport permission.", PermissionDefault.OP, null));
-        permissions.add(new Permission("guardian.zone.allow_oversized", "Zone teleport permission.", PermissionDefault.OP, null));
+        permissions.add(new Permission("guardian.zone.allow_oversized", "Oversized zone permission.", PermissionDefault.OP, null));
 
         permissions.forEach(permission -> Bukkit.getPluginManager().addPermission(permission));
     }
@@ -89,6 +90,7 @@ public class Guardian extends Plugin {
     @Override
     protected void registerCommands() {
         register(
+                new GuardianCommand(),
                 new WandCommand(),
                 new PolywandCommand(),
                 new ZoneCommand()

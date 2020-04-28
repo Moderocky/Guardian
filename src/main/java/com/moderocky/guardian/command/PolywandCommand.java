@@ -3,6 +3,7 @@ package com.moderocky.guardian.command;
 import com.moderocky.guardian.Guardian;
 import com.moderocky.guardian.config.GuardianConfig;
 import com.moderocky.guardian.util.Messenger;
+import com.moderocky.mask.command.Commander;
 import com.moderocky.mask.template.WrappedCommand;
 import org.bukkit.Material;
 import org.bukkit.command.Command;
@@ -14,8 +15,9 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Consumer;
 
-public class PolywandCommand implements WrappedCommand {
+public class PolywandCommand extends Commander<Player> implements WrappedCommand {
 
     private final @NotNull GuardianConfig config = Guardian.getInstance().getGuardianConfig();
     private final @NotNull Messenger messenger = Guardian.getMessenger();
@@ -27,7 +29,7 @@ public class PolywandCommand implements WrappedCommand {
 
     @Override
     public @NotNull String getUsage() {
-        return "/polywand";
+        return "/" + getCommand();
     }
 
     @Override
@@ -37,7 +39,7 @@ public class PolywandCommand implements WrappedCommand {
 
     @Override
     public @Nullable String getPermission() {
-        return "guardian.command.polywand";
+        return "guardian.command." + getCommand();
     }
 
     @Override
@@ -46,8 +48,20 @@ public class PolywandCommand implements WrappedCommand {
     }
 
     @Override
-    public @NotNull String getCommand() {
-        return "polywand";
+    public @NotNull Main create() {
+        return command("polywand");
+    }
+
+    @Override
+    public @NotNull Consumer<Player> getDefault() {
+        return player -> {
+            PlayerInventory inventory = player.getInventory();
+            if (inventory.getItemInMainHand().getType() == Material.AIR)
+                inventory.setItemInMainHand(config.getPolywand());
+            else
+                inventory.addItem(config.getPolywand());
+            messenger.sendMessage("You have received a polywand. Left-click to add a vertex, right-click to clear vertices.", player);
+        };
     }
 
     @Override
