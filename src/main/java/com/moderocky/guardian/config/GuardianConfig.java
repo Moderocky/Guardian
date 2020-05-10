@@ -52,6 +52,10 @@ public class GuardianConfig implements Config {
     public String actionDenyMessage = "§bYou cannot interact with this zone!";
 
     @Configurable(section = "settings")
+    @Configurable.Comment(text = {"Allows use of the zone enter/exit flags.", "Could affect server performance."})
+    public boolean checkEntryExit = true;
+
+    @Configurable(section = "settings")
     @Configurable.Comment(text = "Allowed values are TRUE, OP, NOT_OP and FALSE")
     public PermissionDefault allowBasicFlags = PermissionDefault.TRUE;
 

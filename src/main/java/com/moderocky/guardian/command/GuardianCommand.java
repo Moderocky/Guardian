@@ -58,7 +58,8 @@ public class GuardianCommand extends Commander<CommandSender> implements Wrapped
                         .append("Guardian").color(ChatColor.AQUA)
                         .event(new HoverEvent(HoverEvent.Action.SHOW_TEXT, TextComponent.fromLegacyText("Visit the website?")))
                         .event(new ClickEvent(ClickEvent.Action.OPEN_URL, "https://gitlab.com/Moderocky/Guardian"))
-                        .append(" v" + Guardian.getInstance().getVersion()).append(" by ")
+                        .append(" v" + Guardian.getInstance().getVersion())
+                        .append(" by ")
                         .append("@Moderocky")
                         .color(ChatColor.AQUA)
                         .event(new HoverEvent(HoverEvent.Action.SHOW_TEXT, TextComponent.fromLegacyText("Discord: Moderocky#0001\nGitLab: Moderocky\nGithub: Moderocky\nSpigot: Moderocky")))
@@ -86,7 +87,14 @@ public class GuardianCommand extends Commander<CommandSender> implements Wrapped
                         .event(new ClickEvent(ClickEvent.Action.OPEN_URL, "https://gitlab.com/Moderocky/Mask"))
                         .append(" framework.").color(ChatColor.GRAY).italic(true)
                         .create(), sender))
-                .arg("update", sender -> {})
+                .arg("update", sender -> {
+                })
+                .arg("reload", sender -> {
+                    Guardian.getInstance().getGuardianConfig().load();
+                    messenger.sendMessage(new ComponentBuilder()
+                            .append("Guardian config reloaded.")
+                            .create(), sender);
+                })
                 .arg("wiki", sender -> messenger.sendMessage(new ComponentBuilder()
                         .append("Click ").color(ChatColor.WHITE).underlined(false)
                         .append("here").color(ChatColor.AQUA).underlined(true)

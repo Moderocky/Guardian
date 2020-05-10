@@ -6,7 +6,9 @@ import com.moderocky.guardian.logic.shape.Vertex;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 public class Manifold {
@@ -42,6 +44,14 @@ public class Manifold {
         origin[0] = x;
         origin[0] = y;
         origin[0] = z;
+    }
+
+    public List<Polytope> getEncompassing(Polytope polytope) {
+        List<Polytope> polytopes = new ArrayList<>();
+        for (Polytope poly : getPolytopes()) {
+            if (poly.contains(polytope)) polytopes.add(poly);
+        }
+        return polytopes;
     }
 
     public double[] getOrigin() {

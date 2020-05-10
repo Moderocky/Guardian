@@ -95,6 +95,14 @@ public class Dion implements Polytope, IOrder1 {
     }
 
     @Override
+    public boolean contains(Polytope polytope) {
+        for (Vertex vertex : polytope.vertices()) {
+            if (!contains(vertex)) return false;
+        }
+        return true;
+    }
+
+    @Override
     public Dion[] dions() {
         return new Dion[]{this};
     }

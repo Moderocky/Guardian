@@ -3,6 +3,7 @@ package com.moderocky.guardian.logic.handler;
 import com.moderocky.guardian.logic.shape.Vertex;
 import org.bukkit.Location;
 import org.bukkit.World;
+import org.bukkit.block.Block;
 import org.bukkit.util.BoundingBox;
 
 import java.util.ArrayList;
@@ -12,6 +13,22 @@ import java.util.List;
 
 @SuppressWarnings("unchecked")
 public class LogicUtils {
+
+    public static List<Block> getBlocks(BoundingBox boundingBox, World world) {
+        Location[] bounds = new Location[]{
+                boundingBox.getMin().toLocation(world),
+                boundingBox.getMax().toLocation(world)
+        };
+        List<Block> blocks = new ArrayList<>();
+        for (double y = bounds[0].getY(); y <= bounds[1].getY(); y++) {
+            for (double x = bounds[0].getX(); x <= bounds[1].getX(); x++) {
+                for (double z = bounds[0].getZ(); z <= bounds[1].getZ(); z++) {
+                    blocks.add(new Location(bounds[0].getWorld(), (int) x, (int) y, (int) z).getBlock());
+                }
+            }
+        }
+        return blocks;
+    }
 
     public static boolean containsList(List<List<Integer>> list, List<Integer> listItem) {
         Collections.sort(listItem);

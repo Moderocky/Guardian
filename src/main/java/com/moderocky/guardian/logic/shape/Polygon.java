@@ -49,6 +49,14 @@ public class Polygon implements Polytope, IOrder2 {
     }
 
     @Override
+    public boolean contains(Polytope polytope) {
+        for (Vertex vertex : polytope.vertices()) {
+            if (!contains(vertex)) return false;
+        }
+        return true;
+    }
+
+    @Override
     public boolean contains(@NotNull Dion dion) {
         return contains(dion.getStart()) && contains(dion.getEnd());
     }

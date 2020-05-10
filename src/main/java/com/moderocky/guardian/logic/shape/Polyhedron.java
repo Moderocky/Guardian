@@ -114,6 +114,15 @@ public class Polyhedron implements Polytope, IOrder3 {
     }
 
     @Override
+    public boolean contains(Polytope polytope) {
+        PolyProcessor processor = new PolyProcessor(this);
+        for (Vertex vertex : polytope.vertices()) {
+            if (!processor.isInside(vertex)) return false;
+        }
+        return true;
+    }
+
+    @Override
     public boolean contains(@NotNull Polygon polygon) {
         PolyProcessor processor = new PolyProcessor(this);
         for (Vertex vertex : polygon.vertices()) {

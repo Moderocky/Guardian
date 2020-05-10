@@ -6,8 +6,10 @@ import com.moderocky.mask.api.commons.Nameable;
 import org.bukkit.Location;
 import org.bukkit.NamespacedKey;
 import org.bukkit.World;
+import org.bukkit.block.Block;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
+import org.bukkit.util.BoundingBox;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -67,6 +69,11 @@ public abstract class Zone implements Nameable, Describable {
 
     public boolean hasFlag(@NotNull String flag) {
         return flags.contains(flag);
+    }
+
+    public double getCuboidalSize() {
+        BoundingBox box = getBoundingBox();
+        return box.getWidthX()*box.getWidthZ()*box.getHeight();
     }
 
     /**
@@ -182,6 +189,22 @@ public abstract class Zone implements Nameable, Describable {
      * @return Whether this player can make changes to the zone (i.e. flags, etc.)
      */
     public abstract boolean canEdit(@NotNull UUID player);
+
+    /**
+     * This should return any block that is protected/covered by the zone.
+     *
+     * @return the covered blocks
+     */
+    public abstract @NotNull List<Block> getBlocks();
+
+    /**
+     * This should return a bounding box encompassing the entirety of the zone.
+     * It should be a cuboidal approximation of the zone (i.e. the same max width/height)
+     * and will be used for preliminary area checks.
+     *
+     * @return A bounding box
+     */
+    public abstract @NotNull BoundingBox getBoundingBox();
 
     public abstract @NotNull World getWorld();
 

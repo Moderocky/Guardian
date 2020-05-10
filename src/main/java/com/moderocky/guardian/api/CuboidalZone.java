@@ -1,8 +1,10 @@
 package com.moderocky.guardian.api;
 
 import com.moderocky.guardian.Guardian;
+import com.moderocky.guardian.logic.handler.LogicUtils;
 import com.moderocky.guardian.logic.shape.Vertex;
 import org.bukkit.*;
+import org.bukkit.block.Block;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.bukkit.util.BoundingBox;
@@ -54,7 +56,8 @@ public class CuboidalZone extends Zone implements Parent<CuboidalChild> {
         return zone;
     }
 
-    public BoundingBox getBoundingBox() {
+    @Override
+    public @NotNull BoundingBox getBoundingBox() {
         return boundingBox;
     }
 
@@ -107,6 +110,11 @@ public class CuboidalZone extends Zone implements Parent<CuboidalChild> {
     @Override
     public boolean canEdit(@NotNull UUID player) {
         return player.equals(getOwner()) || Bukkit.getOfflinePlayer(player).isOp();
+    }
+
+    @Override
+    public @NotNull List<Block> getBlocks() {
+        return LogicUtils.getBlocks(getBoundingBox(), getWorld());
     }
 
     @Override

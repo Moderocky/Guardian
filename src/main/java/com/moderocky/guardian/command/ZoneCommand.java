@@ -10,21 +10,27 @@ import com.moderocky.guardian.command.argument.ArgFlag;
 import com.moderocky.guardian.command.argument.ArgZone;
 import com.moderocky.guardian.config.GuardianConfig;
 import com.moderocky.guardian.util.Messenger;
+import com.moderocky.mask.command.ArgOfflinePlayer;
 import com.moderocky.mask.command.ArgPlayer;
 import com.moderocky.mask.command.ArgString;
 import com.moderocky.mask.command.Commander;
 import com.moderocky.mask.template.WrappedCommand;
 import net.md_5.bungee.api.ChatColor;
-import net.md_5.bungee.api.chat.*;
+import net.md_5.bungee.api.chat.BaseComponent;
+import net.md_5.bungee.api.chat.ClickEvent;
+import net.md_5.bungee.api.chat.ComponentBuilder;
+import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.*;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-import org.bukkit.util.StringUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.UUID;
 import java.util.function.Consumer;
 
 public class ZoneCommand extends Commander<CommandSender> implements WrappedCommand {
@@ -80,7 +86,8 @@ public class ZoneCommand extends Commander<CommandSender> implements WrappedComm
                                         messenger.sendMessage("The selected area is larger than " + config.maxZoneDiameter + "×" + config.maxZoneDiameter + " blocks in diameter.", player);
                                         return;
                                     }
-                                    String id = input[0];
+                                    @SuppressWarnings("all")
+                                    String id = input[0].toString();
                                     if (api.getZone(id) != null) {
                                         messenger.sendMessage("A zone with the id '" + id + "' already exists.", sender);
                                         return;
@@ -116,7 +123,7 @@ public class ZoneCommand extends Commander<CommandSender> implements WrappedComm
                                             return;
                                         }
                                     }
-                                    String id = input[1];
+                                    String id = input[0].toString();
                                     if (api.getZone(id) != null) {
                                         messenger.sendMessage("A zone with the id '" + id + "' already exists.", sender);
                                         return;
@@ -131,14 +138,14 @@ public class ZoneCommand extends Commander<CommandSender> implements WrappedComm
                                     api.updateCache();
                                     messenger.sendMessage("A polyhedral zone with the id '" + id + "' has been created.", sender);
                                 },
-                                new ArgZone()
+                                new ArgString().setLabel("zone_id")
                         )
                 )
                 .arg("delete",
                         sender -> messenger.sendMessage("/zone delete <zone_id>", sender),
                         arg(
                                 (sender, input) -> {
-                                    String id = input[0];
+                                    String id = input[0].toString();
                                     Zone zone = api.getZone(id);
                                     if (zone == null) {
                                         messenger.sendMessage("No zone with the id '" + id + "' can be found.", sender);
@@ -155,7 +162,7 @@ public class ZoneCommand extends Commander<CommandSender> implements WrappedComm
                 .arg("info",
                         sender -> {
                             if (!(sender instanceof Player)) return;
-                            List<Zone> zones = api.getZones(((Player) sender).getLocation());
+                            List<Zone> zones = api.getZones(((Player) sender).getLocation().getBlock().getLocation());
                             if (zones.isEmpty()) {
                                 messenger.sendMessage("There are no zones at your location.", sender);
                             } else {
@@ -171,7 +178,7 @@ public class ZoneCommand extends Commander<CommandSender> implements WrappedComm
                                 (sender, input) -> {
                                     if (input[0] == null) {
                                         if (!(sender instanceof Player)) return;
-                                        List<Zone> zones = api.getZones(((Player) sender).getLocation());
+                                        List<Zone> zones = api.getZones(((Player) sender).getLocation().getBlock().getLocation());
                                         if (zones.isEmpty()) {
                                             messenger.sendMessage("There are no zones at your location.", sender);
                                         } else {
@@ -184,7 +191,7 @@ public class ZoneCommand extends Commander<CommandSender> implements WrappedComm
                                         }
                                         return;
                                     }
-                                    String id = input[0];
+                                    String id = input[0].toString();
                                     Zone zone = api.getZone(id);
                                     if (zone == null) {
                                         messenger.sendMessage("No zone with the id '" + id + "' can be found.", sender);
@@ -243,7 +250,34 @@ public class ZoneCommand extends Commander<CommandSender> implements WrappedComm
                                 }
                                 messenger.sendMessage(builder.create(), sender);
                             }
-                        }
+                        },
+                        arg(
+                                (sender, input) -> {
+                                    List<Zone> zones = api.getZones();
+                                    zones.removeIf(zone -> !zone.canEdit(((OfflinePlayer) input[0]).getUniqueId()));
+                                    if (zones.isEmpty()) {
+                                        messenger.sendMessage("No zones have been defined.", sender);
+                                    } else {
+                                        List<NamespacedKey> keys = new ArrayList<>();
+                                        for (Zone zone : zones) {
+                                            keys.add(zone.getKey());
+                                        }
+                                        ComponentBuilder builder = new ComponentBuilder("Zones Editable by " + ((OfflinePlayer) input[0]).getName() + ":");
+                                        for (NamespacedKey key : keys) {
+                                            builder
+                                                    .append(System.lineSeparator())
+                                                    .reset()
+                                                    .append(" - ")
+                                                    .color(ChatColor.DARK_GRAY)
+                                                    .append(convertCase(key.getKey()))
+                                                    .color(ChatColor.GRAY)
+                                                    .event(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/zone info " + key.toString()));
+                                        }
+                                        messenger.sendMessage(builder.create(), sender);
+                                    }
+                                },
+                                new ArgOfflinePlayer()
+                        )
                 )
                 .arg("remove",
                         sender -> messenger.sendMessage("/zone remove <zone_id> <player/uuid>", sender),
@@ -275,7 +309,7 @@ public class ZoneCommand extends Commander<CommandSender> implements WrappedComm
                 .arg("show",
                         sender -> {
                             if (!(sender instanceof Player)) return;
-                            List<Zone> zones = api.getZones(((Player) sender).getLocation());
+                            List<Zone> zones = api.getZones(((Player) sender).getLocation().getBlock().getLocation());
                             if (zones.isEmpty()) {
                                 messenger.sendMessage("No zones can be found at your location.", sender);
                                 return;
@@ -288,8 +322,8 @@ public class ZoneCommand extends Commander<CommandSender> implements WrappedComm
                             });
                         },
                         arg(
-                                (sender, inputs) -> {
-                                    String id = inputs[0];
+                                (sender, input) -> {
+                                    String id = input[0].toString();
                                     Zone zone = api.getZone(id);
                                     if (zone == null) {
                                         messenger.sendMessage("No zone with the id '" + id + "' can be found.", sender);
@@ -299,6 +333,8 @@ public class ZoneCommand extends Commander<CommandSender> implements WrappedComm
                                         ((CuboidalZone) zone).showBounds();
                                     else if (zone instanceof PolyhedralZone)
                                         ((PolyhedralZone) zone).showBounds();
+                                    if (sender instanceof Player && (zone.getCuboidalSize() < 800))
+                                        api.displayBlocks(zone, (Player) sender);
                                 },
                                 new ArgZone()
                         )
@@ -306,14 +342,14 @@ public class ZoneCommand extends Commander<CommandSender> implements WrappedComm
                 .arg("teleport",
                         sender -> messenger.sendMessage("You do not have permission for this action.", sender),
                         arg(
-                                (sender, inputs) -> {
+                                (sender, input) -> {
                                     if (!(sender instanceof Player)) return;
                                     if (!sender.hasPermission("guardian.command.teleport")) {
                                         messenger.sendMessage("You do not have permission for this action.", sender);
                                         return;
                                     }
                                     Player player = (Player) sender;
-                                    String id = inputs[0];
+                                    String id = input[0].toString();
                                     Zone zone = api.getZone(id);
                                     if (zone == null) {
                                         messenger.sendMessage("No zone with the id '" + id + "' can be found.", sender);
@@ -328,9 +364,9 @@ public class ZoneCommand extends Commander<CommandSender> implements WrappedComm
                 .arg("toggle",
                         sender -> messenger.sendMessage("/zone toggle <zone_id> <flag>", sender),
                         arg(
-                                (sender, inputs) -> {
-                                    String id = inputs[0];
-                                    String flag = inputs[1];
+                                (sender, input) -> {
+                                    String id = input[0].toString();
+                                    String flag = input[1].toString();
                                     Zone zone = api.getZone(id);
                                     if (zone == null) {
                                         messenger.sendMessage("No zone with the id '" + id + "' can be found.", sender);

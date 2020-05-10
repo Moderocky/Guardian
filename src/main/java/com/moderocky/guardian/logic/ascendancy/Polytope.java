@@ -16,6 +16,8 @@ public interface Polytope {
 
     Vertex[] vertices();
 
+    boolean contains(Polytope polytope);
+
     default boolean hasLockingPoint(@NotNull Polytope polytope) {
         for (Vertex vertex : polytope.vertices()) {
             for (Vertex vx : vertices()) {

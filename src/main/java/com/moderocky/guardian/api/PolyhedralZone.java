@@ -7,6 +7,7 @@ import com.moderocky.guardian.logic.shape.Polyhedron;
 import com.moderocky.guardian.logic.shape.Vertex;
 import com.moderocky.guardian.util.ParticleUtils;
 import org.bukkit.*;
+import org.bukkit.block.Block;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.bukkit.util.BoundingBox;
@@ -59,7 +60,8 @@ public class PolyhedralZone extends Zone {
         return zone;
     }
 
-    public BoundingBox getBoundingBox() {
+    @Override
+    public @NotNull BoundingBox getBoundingBox() {
         return boundingBox;
     }
 
@@ -130,6 +132,13 @@ public class PolyhedralZone extends Zone {
     @Override
     public boolean canEdit(@NotNull UUID player) {
         return player.equals(getOwner()) || Bukkit.getOfflinePlayer(player).isOp();
+    }
+
+    @Override
+    public @NotNull List<Block> getBlocks() {
+        List<Block> blocks = new ArrayList<>(LogicUtils.getBlocks(getBoundingBox(), getWorld()));
+        blocks.removeIf(block -> !isInside(block.getLocation().add(0.5, 0.5, 0.5)));
+        return blocks;
     }
 
     @Override

@@ -8,7 +8,7 @@ import com.moderocky.guardian.command.ZoneCommand;
 import com.moderocky.guardian.config.GuardianConfig;
 import com.moderocky.guardian.listener.*;
 import com.moderocky.guardian.util.Messenger;
-import com.moderocky.mask.template.Plugin;
+import com.moderocky.mask.template.BukkitPlugin;
 import org.bstats.bukkit.Metrics;
 import org.bukkit.Bukkit;
 import org.bukkit.permissions.Permission;
@@ -18,7 +18,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Guardian extends Plugin {
+public class Guardian extends BukkitPlugin {
 
     private static GuardianAPI api;
     private static Guardian instance;
@@ -85,6 +85,7 @@ public class Guardian extends Plugin {
                 new PlayerInteractListener(),
                 new PlayerTeleportListener()
         );
+        if (config.checkEntryExit) register(new PlayerMoveListener());
     }
 
     @Override

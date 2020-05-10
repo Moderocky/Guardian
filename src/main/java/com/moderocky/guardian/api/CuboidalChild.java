@@ -61,7 +61,7 @@ public class CuboidalChild extends CuboidalZone implements Child<CuboidalZone> {
         return zone;
     }
 
-    public BoundingBox getBoundingBox() {
+    public @NotNull BoundingBox getBoundingBox() {
         return boundingBox;
     }
 

@@ -12,7 +12,6 @@ import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.chat.*;
 import org.bukkit.*;
 import org.bukkit.block.Block;
-import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -25,6 +24,7 @@ import org.bukkit.permissions.PermissionDefault;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.RegisteredListener;
+import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.StringUtil;
 import org.jetbrains.annotations.NotNull;
@@ -69,6 +69,10 @@ public class GuardianAPI {
         addProtectionFlag("interact_with_blocks", config.allowBasicFlags);
         addProtectionFlag("interact_with_entities", config.allowBasicFlags);
         addProtectionFlag("prevent_tree_growth", config.allowBasicFlags);
+        if (config.checkEntryExit) {
+            addProtectionFlag("prevent_entry", config.allowBasicFlags);
+            addProtectionFlag("prevent_exit", config.allowBasicFlags);
+        }
         addProtectionFlag("prevent_commands", config.allowSpecialFlags);
         addProtectionFlag("prevent_chat", config.allowSpecialFlags);
         addProtectionFlag("prevent_teleport", config.allowSpecialFlags);
@@ -187,6 +191,21 @@ public class GuardianAPI {
             player.sendActionBar(config.actionDenyMessage);
     }
 
+    public void displayBlocks(Zone zone, Player player) {
+        List<Block> blocks = zone.getBlocks();
+        for (Block block : blocks) {
+            player.sendBlockChange(block.getLocation(), Material.WHITE_STAINED_GLASS.createBlockData());
+        }
+        new BukkitRunnable() {
+            @Override
+            public void run() {
+                for (Block block : blocks) {
+                    player.sendBlockChange(block.getLocation(), block.getBlockData());
+                }
+            }
+        }.runTaskLater(Guardian.getInstance(), 30L);
+    }
+
     public void displayBox(Player player) {
         Location l1 = getWandPosition(player, 1);
         Location l2 = getWandPosition(player, 2);
@@ -303,7 +322,8 @@ public class GuardianAPI {
         List<Zone> list = new ArrayList<>();
         for (Zone zone : getZones()) {
             if (location.getWorld() != zone.getWorld()) continue;
-            if (location.distanceSquared(zone.getLocation()) > (zone.getRadius() * zone.getRadius())) continue;
+            //if (location.distanceSquared(zone.getLocation()) > (zone.getRadius() * zone.getRadius())) continue;
+            if (!zone.getBoundingBox().contains(location.toVector())) continue;
             if (zone.isInside(location)) list.add(zone);
             if (zone instanceof Parent) {
                 Parent<?> parent = (Parent<?>) zone;

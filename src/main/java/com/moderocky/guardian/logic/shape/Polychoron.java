@@ -37,6 +37,11 @@ public class Polychoron implements Polytope, IOrder4 {
     }
 
     @Override
+    public boolean contains(Polytope polytope) {
+        return false;
+    }
+
+    @Override
     public Polychoron[] polychorons() {
         return new Polychoron[]{this};
     }

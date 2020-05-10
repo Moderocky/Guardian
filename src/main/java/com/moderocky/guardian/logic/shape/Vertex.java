@@ -89,6 +89,14 @@ public class Vertex implements Polytope, IOrder0 {
     }
 
     @Override
+    public boolean contains(Polytope polytope) {
+        for (Vertex vertex : polytope.vertices()) {
+            if (!vertex.equals(this)) return false;
+        }
+        return true;
+    }
+
+    @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (!(o instanceof Vertex)) return false;
