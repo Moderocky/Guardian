@@ -8,7 +8,7 @@ Developer? Learn about writing an extension or contributing below.
 - Intuitive creation system
 - Easy-to-extend framework
 - Simple flag system to avoid priority disputes
-- Support for non-cuboidal zones (via extension)
+- Support for non-cuboidal zones
 - Lightweight event-caching system
 - No version-dependent code
 
@@ -24,8 +24,8 @@ Developer? Learn about writing an extension or contributing below.
 Maven repository information:
 ```xml
 <repository>
-    <id>guardian-repo</id>
-    <url>https://gitlab.com/api/v4/projects/18149797/packages/maven</url>
+    <id>pan-repo</id>
+    <url>https://gitlab.com/api/v4/projects/18568066/packages/maven</url>
 </repository>
 ```
 
