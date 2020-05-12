@@ -25,6 +25,7 @@ Maven repository information:
 ```xml
 <repository>
     <id>pan-repo</id>
+    <name>Pandaemonium Repository</name>
     <url>https://gitlab.com/api/v4/projects/18568066/packages/maven</url>
 </repository>
 ```
