@@ -35,13 +35,16 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.util.*;
 
+@SuppressWarnings("unused")
 public class GuardianAPI {
 
     private final @NotNull HashMap<NamespacedKey, Zone> zoneMap = new HashMap<>();
     private final @NotNull HashMap<World, List<NamespacedKey>> worldCache = new HashMap<>();
     private final @NotNull HashMap<WorldDistrict, List<NamespacedKey>> worldDistrictCache = new HashMap<>();
     private final @NotNull List<String> protectionFlags = new ArrayList<>();
+    private final @NotNull HashMap<Chunk, Boolean> chunkMoveCheckCache = new HashMap<>();
     private final @NotNull HashMap<String, Boolean> eventResultCache = new HashMap<>();
+    private final @NotNull HashMap<Block, List<Zone>> locationZoneCache = new HashMap<>();
     private final @NotNull HashMap<Class<Event>, EventMethRef> blindEventMap = new HashMap<>();
 
     private GuardianConfig config;
@@ -122,7 +125,9 @@ public class GuardianAPI {
     }
 
     public void updateCache() {
+        chunkMoveCheckCache.clear();
         eventResultCache.clear();
+        locationZoneCache.clear();
     }
 
     public Boolean getCachedResult(String hashedEvent) {
@@ -184,6 +189,62 @@ public class GuardianAPI {
             locations.add(deserialisePosition(s));
         }
         return locations;
+    }
+
+    public boolean requiresMoveCheck(Location location) {
+        Chunk chunk = location.getChunk();
+        if (chunkMoveCheckCache.containsKey(chunk)) {
+            return chunkMoveCheckCache.get(chunk);
+        }
+        List<NamespacedKey> keys = getZones(chunk.getWorld());
+        for (NamespacedKey key : keys) {
+            Zone zone = getZone(key);
+            if (!zone.getFlags().contains("prevent_entry") && !zone.getFlags().contains("prevent_exit")) continue;
+            if (Arrays.asList(zone.getChunks()).contains(chunk)) {
+                chunkMoveCheckCache.put(chunk, true);
+                return true;
+            }
+        }
+        chunkMoveCheckCache.put(chunk, false);
+        return false;
+    }
+
+    public boolean getInteractionResult(String flag, Location location) {
+        List<Zone> zones = getZones(location);
+        if (zones.isEmpty()) return true;
+        for (Zone zone : zones) {
+            if (!zone.canInteract(location, flag)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public boolean getInteractionResult(String flag, Location location, Player player) {
+        List<Zone> zones = getZones(location);
+        if (zones.isEmpty()) return true;
+        for (Zone zone : zones) {
+            if (!zone.canInteract(location, flag, player)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public String createHache(String flag, Location... locations) {
+        StringBuilder hache = new StringBuilder(flag.hashCode() + "x");
+        for (Location l : locations) {
+            hache.append("x").append(Math.floor(l.getX())).append("0").append(Math.floor(l.getY())).append("0").append(Math.floor(l.getZ()));
+        }
+        return hache.toString().trim();
+    }
+
+    public String createHache(String flag, Player player, Location... locations) {
+        StringBuilder hache = new StringBuilder(flag.hashCode() + "x");
+        for (Location l : locations) {
+            hache.append("x").append(Math.floor(l.getX())).append("0").append(Math.floor(l.getY())).append("0").append(Math.floor(l.getZ()));
+        }
+        return hache.toString().trim();
     }
 
     public void denyEvent(Player player) {
@@ -254,6 +315,7 @@ public class GuardianAPI {
         throw new IllegalArgumentException();
     }
 
+    @SuppressWarnings("all")
     public boolean canCreateZone(Zone zone, Player player) {
         for (NamespacedKey nearbyZone : getZones(zone.getWorld())) {
             if (zoneMap.get(nearbyZone).overlaps(zone) && !zoneMap.get(nearbyZone).canEdit(player.getUniqueId()))
@@ -319,10 +381,13 @@ public class GuardianAPI {
     }
 
     public @NotNull List<Zone> getZones(Location location) {
+        Block block = location.getBlock();
+        if (locationZoneCache.containsKey(block)) {
+            return new ArrayList<>(locationZoneCache.get(block));
+        }
         List<Zone> list = new ArrayList<>();
         for (Zone zone : getZones()) {
             if (location.getWorld() != zone.getWorld()) continue;
-            //if (location.distanceSquared(zone.getLocation()) > (zone.getRadius() * zone.getRadius())) continue;
             if (!zone.getBoundingBox().contains(location.toVector())) continue;
             if (zone.isInside(location)) list.add(zone);
             if (zone instanceof Parent) {
@@ -336,6 +401,7 @@ public class GuardianAPI {
                 }
             }
         }
+        locationZoneCache.put(block, list);
         return list;
     }
 
@@ -372,6 +438,8 @@ public class GuardianAPI {
     }
 
     private void clearCaches() {
+        chunkMoveCheckCache.clear();
+        locationZoneCache.clear();
         worldDistrictCache.clear();
         worldCache.clear();
     }

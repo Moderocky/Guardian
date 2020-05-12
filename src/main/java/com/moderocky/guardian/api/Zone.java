@@ -3,6 +3,7 @@ package com.moderocky.guardian.api;
 import com.google.common.base.Ascii;
 import com.moderocky.mask.api.commons.Describable;
 import com.moderocky.mask.api.commons.Nameable;
+import org.bukkit.Chunk;
 import org.bukkit.Location;
 import org.bukkit.NamespacedKey;
 import org.bukkit.World;
@@ -16,11 +17,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+@SuppressWarnings("unused")
 public abstract class Zone implements Nameable, Describable {
 
     private final @NotNull List<String> flags = new ArrayList<>();
     private final @NotNull List<UUID> players = new ArrayList<>();
     private final @NotNull NamespacedKey key;
+
+    private Chunk[] chunks = null;
 
     public Zone(@NotNull NamespacedKey id) {
         this.key = id;
@@ -73,7 +77,7 @@ public abstract class Zone implements Nameable, Describable {
 
     public double getCuboidalSize() {
         BoundingBox box = getBoundingBox();
-        return box.getWidthX()*box.getWidthZ()*box.getHeight();
+        return box.getWidthX() * box.getWidthZ() * box.getHeight();
     }
 
     /**
@@ -205,6 +209,31 @@ public abstract class Zone implements Nameable, Describable {
      * @return A bounding box
      */
     public abstract @NotNull BoundingBox getBoundingBox();
+
+    /**
+     * @return The list of chunks that this zone crosses or occupies
+     */
+    public @NotNull Chunk[] getChunks() {
+        if (chunks != null) return chunks;
+        List<Chunk> chunks = new ArrayList<>();
+        World world = getWorld();
+        Location location1 = getBoundingBox().getMin().toLocation(world);
+        Location location2 = getBoundingBox().getMax().toLocation(world);
+        int xMin = location1.getChunk().getX();
+        int xMax = location2.getChunk().getX();
+
+        int zMin = location1.getChunk().getZ();
+        int zMax = location2.getChunk().getZ();
+
+        for (int x = xMin; x <= xMax; x++) {
+            for (int z = zMin; z <= zMax; z++) {
+                chunks.add(world.getChunkAt(x, z));
+            }
+        }
+
+        this.chunks = chunks.toArray(new Chunk[0]);
+        return this.chunks;
+    }
 
     public abstract @NotNull World getWorld();
 

@@ -3,6 +3,7 @@ package com.moderocky.guardian.api;
 import org.bukkit.Location;
 import org.bukkit.World;
 
+@SuppressWarnings("unused")
 public class WorldDistrict {
 
     private final long x;

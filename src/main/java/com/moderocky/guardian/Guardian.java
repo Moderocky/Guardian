@@ -18,6 +18,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
 import java.util.List;
 
+@SuppressWarnings("unused")
 public class Guardian extends BukkitPlugin {
 
     private static GuardianAPI api;
@@ -106,6 +107,10 @@ public class Guardian extends BukkitPlugin {
             getAddon().loadClasses("com.moderocky.guardian.skript", "expression");
         } catch (Throwable ignore) {
         }
+    }
+
+    public @NotNull Metrics getMetrics() {
+        return metrics;
     }
 
     @NotNull

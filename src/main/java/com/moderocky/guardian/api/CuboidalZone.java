@@ -8,6 +8,7 @@ import org.bukkit.block.Block;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.bukkit.util.BoundingBox;
+import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -16,6 +17,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
+@SuppressWarnings("unused")
 public class CuboidalZone extends Zone implements Parent<CuboidalChild> {
 
     private final @NotNull List<CuboidalChild> children = new ArrayList<>();
@@ -58,7 +60,7 @@ public class CuboidalZone extends Zone implements Parent<CuboidalChild> {
 
     @Override
     public @NotNull BoundingBox getBoundingBox() {
-        return boundingBox;
+        return BoundingBox.of(boundingBox.getMin(), boundingBox.getMax().add(new Vector(1, 1, 1)));
     }
 
     @Override
@@ -104,7 +106,8 @@ public class CuboidalZone extends Zone implements Parent<CuboidalChild> {
 
     @Override
     public boolean isInside(@NotNull Location location) {
-        return location.getWorld() == getWorld() && boundingBox.clone().expand(0.1, 0.1, 0.1).contains(location.toVector());
+        BoundingBox box = BoundingBox.of(boundingBox.getMin(), boundingBox.getMax().add(new Vector(1, 1, 1)));
+        return location.getWorld() == getWorld() && box.expand(0.1, 0.1, 0.1).contains(location.toVector());
     }
 
     @Override

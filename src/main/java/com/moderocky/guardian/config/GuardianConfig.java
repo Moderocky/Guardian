@@ -73,7 +73,7 @@ public class GuardianConfig implements Config {
             "Delay between clearing action caches (used to speed up the plugin) - in seconds.",
             "Longer delays will increase performance, but have the potential to cause false blocking."
     })
-    public long actionCacheResetDelay = 16;
+    public long actionCacheResetDelay = 30;
 
     public GuardianConfig() {
         load();

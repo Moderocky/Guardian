@@ -18,6 +18,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
+@SuppressWarnings("unused")
 public class ResidentialZone extends Zone {
 
     private GuardianAPI api;

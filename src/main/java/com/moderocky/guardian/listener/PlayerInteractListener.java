@@ -77,9 +77,6 @@ public class PlayerInteractListener implements CompleteListener {
         if (block == null) return;
         Location location = block.getLocation();
         Player player = event.getPlayer();
-//        String hache = player.hashCode() + "0x15" + block.hashCode();
-//        Boolean boo = api.getCachedResult(hache);
-        // This event can't be effectively cached.
         for (Zone zone : api.getZones(location)) {
             if (!zone.canInteract(location, "interact_with_blocks", player)) {
                 event.setCancelled(true);

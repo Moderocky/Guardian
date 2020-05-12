@@ -9,6 +9,7 @@ import java.lang.reflect.Constructor;
 import java.util.ArrayList;
 import java.util.List;
 
+@SuppressWarnings("unused")
 public interface Parent<Z extends Zone> {
 
     @NotNull List<Z> getChildren();

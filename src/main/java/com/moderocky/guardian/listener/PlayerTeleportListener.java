@@ -24,20 +24,12 @@ public class PlayerTeleportListener implements CompleteListener {
         if (event.isCancelled()) return;
         Player player = event.getPlayer();
         Location location = event.getTo();
-        String hache = player.hashCode() + "0x17" + location.getBlockX() + "0" + location.getBlockY() + "0" + location.getBlockZ() + "0";
-        Boolean boo = api.getCachedResult(hache);
-        if (boo != null) {
-            event.setCancelled(boo);
-        } else {
-            for (Zone zone : api.getZones(location)) {
-                if (!zone.canInteract(location, "prevent_teleport", player)) {
-                    event.setCancelled(true);
-                    api.addCachedResult(hache, true);
-                    api.denyEvent(player);
-                    return;
-                }
+        for (Zone zone : api.getZones(location)) {
+            if (!zone.canInteract(location, "prevent_teleport", player)) {
+                event.setCancelled(true);
+                api.denyEvent(player);
+                return;
             }
-            api.addCachedResult(hache, false);
         }
     }
 

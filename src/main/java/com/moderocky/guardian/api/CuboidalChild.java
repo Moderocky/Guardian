@@ -13,6 +13,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.UUID;
 
+@SuppressWarnings("unused")
 public class CuboidalChild extends CuboidalZone implements Child<CuboidalZone> {
 
     private GuardianAPI api;
