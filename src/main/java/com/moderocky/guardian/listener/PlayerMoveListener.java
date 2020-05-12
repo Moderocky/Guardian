@@ -46,11 +46,9 @@ public class PlayerMoveListener implements CompleteListener {
         exit:
         {
             if (zTo.equals(zFrom)) break exit;
-            Bukkit.broadcastMessage("e");//TODO
             for (Zone zone : zFrom) {
                 if (!zTo.contains(zone) && !zone.canInteract(from, "prevent_exit", player)) {
                     event.setCancelled(true);
-                    Bukkit.broadcastMessage("f");//TODO
                     api.denyEvent(player);
                     break exit;
                 }
