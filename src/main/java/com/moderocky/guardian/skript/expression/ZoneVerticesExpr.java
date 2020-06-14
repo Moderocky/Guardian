@@ -63,7 +63,7 @@ public class ZoneVerticesExpr extends SimpleExpression<Location> {
         Zone zone = api.getZone(id);
         List<Location> locations = new ArrayList<>();
         if (zone instanceof CuboidalZone) {
-            locations.addAll(LogicUtils.toLocations(LogicUtils.getVertices(((CuboidalZone) zone).getBoundingBox()), zone.getWorld()));
+            locations.addAll(LogicUtils.toLocations(LogicUtils.getVertices(zone.getBoundingBox()), zone.getWorld()));
         } else if (zone instanceof PolyhedralZone) {
             locations.addAll(LogicUtils.toLocations(((PolyhedralZone) zone).getPolyhedron().getVertices(), zone.getWorld()));
         }

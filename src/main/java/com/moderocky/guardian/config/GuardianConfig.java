@@ -17,62 +17,67 @@ import java.util.Collections;
 
 public class GuardianConfig implements Config {
 
-    @Configurable(section = "wand")
+    @Configurable("wand")
     public boolean enableWand = true;
 
-    @Configurable(section = "wand")
+    @Configurable.Comment("Any Bukkit Material enum is permitted.")
+    @Configurable("wand")
     public Material wandMaterial = Material.DEBUG_STICK;
 
-    @Configurable(section = "wand")
+    @Configurable.Comment("Allows a custom model data value to be used for the wand.")
+    @Configurable("wand")
     @Configurable.Bounded(minValue = 0, maxValue = 999999999)
     public int wandModelData = 102;
 
-    @Configurable(section = "wand")
+    @Configurable.Comment("Any Bukkit Material enum is permitted.")
+    @Configurable("wand")
     public Material polywandMaterial = Material.DEBUG_STICK;
 
-    @Configurable(section = "wand")
+    @Configurable.Comment("Allows a custom model data value to be used for the wand.")
+    @Configurable("wand")
     @Configurable.Bounded(minValue = 0, maxValue = 999999999)
     public int polywandModelData = 103;
 
-    @Configurable(section = "wand")
+    @Configurable.Comment("Use '%s' to indicate the position number.")
+    @Configurable("wand")
     public String setPosition = "Set Zone Position #%s";
 
-    @Configurable(section = "wand")
+    @Configurable("wand")
     public String clearPosition = "Cleared Zone Positions";
 
-    @Configurable(section = "zone")
-    @Configurable.Comment(text = {
+    @Configurable.Comment({
             "The maximum diameter for a player-created zone.",
-            "This is from corner to corner."
+            "This goes from corner to corner."
     })
+    @Configurable("zone")
     @Configurable.Bounded(minValue = 1, maxValue = 100000)
     public long maxZoneDiameter = 128;
 
-    @Configurable(section = "zone")
+    @Configurable("zone")
     public String actionDenyMessage = "§bYou cannot interact with this zone!";
 
-    @Configurable(section = "settings")
-    @Configurable.Comment(text = {"Allows use of the zone enter/exit flags.", "Could affect server performance."})
+    @Configurable.Comment({"Allows use of the zone enter/exit flags.", "Might affect server performance if misused."})
+    @Configurable("settings")
     public boolean checkEntryExit = true;
 
-    @Configurable(section = "settings")
-    @Configurable.Comment(text = "Allowed values are TRUE, OP, NOT_OP and FALSE")
+    @Configurable.Comment("Allowed values are TRUE, OP, NOT_OP and FALSE.")
+    @Configurable("settings")
     public PermissionDefault allowBasicFlags = PermissionDefault.TRUE;
 
-    @Configurable(section = "settings")
-    @Configurable.Comment(text = "Allowed values are TRUE, OP, NOT_OP and FALSE")
+    @Configurable.Comment("Allowed values are TRUE, OP, NOT_OP and FALSE.")
+    @Configurable("settings")
     public PermissionDefault allowSpecialFlags = PermissionDefault.OP;
 
-    @Configurable(section = "settings")
-    @Configurable.Comment(text = "Delay between saving to file - in seconds.")
+    @Configurable.Comment("Delay between saving to file - in seconds.")
+    @Configurable("settings")
     @Configurable.Bounded(minValue = 10, maxValue = 100000)
     public long saveDelay = 100;
 
-    @Configurable(section = "settings")
-    @Configurable.Comment(text = {
+    @Configurable.Comment({
             "Delay between clearing action caches (used to speed up the plugin) - in seconds.",
             "Longer delays will increase performance, but have the potential to cause false blocking."
     })
+    @Configurable("settings")
     public long actionCacheResetDelay = 30;
 
     public GuardianConfig() {
@@ -102,8 +107,8 @@ public class GuardianConfig implements Config {
     }
 
     public ItemStack getPolywand() {
-        return new ItemFactory(wandMaterial, 1, itemMeta -> {
-            itemMeta.setCustomModelData(wandModelData);
+        return new ItemFactory(polywandMaterial, 1, itemMeta -> {
+            itemMeta.setCustomModelData(polywandModelData);
             itemMeta.setDisplayName("§6Zone Polywand");
             itemMeta.setLore(Arrays.asList("§7LClick to add a vertex", "§7RClick to reset vertices"));
             itemMeta.addEnchant(Enchantment.VANISHING_CURSE, 1, true);

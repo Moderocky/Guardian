@@ -84,11 +84,17 @@ public class GuardianCommand extends Commander<CommandSender> implements Wrapped
                         .append("Built on the ").color(ChatColor.GRAY).italic(true)
                         .append("Mask").color(ChatColor.GOLD).italic(true)
                         .event(new HoverEvent(HoverEvent.Action.SHOW_TEXT, TextComponent.fromLegacyText("Mask Framework?")))
-                        .event(new ClickEvent(ClickEvent.Action.OPEN_URL, "https://gitlab.com/Moderocky/Mask"))
+                        .event(new ClickEvent(ClickEvent.Action.OPEN_URL, "https://gitlab.com/Pandaemonium/Mask"))
                         .append(" framework.").color(ChatColor.GRAY).italic(true)
                         .create(), sender))
-                .arg("update", sender -> {
-                })
+                .arg("update", sender -> messenger.sendMessage(new ComponentBuilder()
+                        .append("This function is not currently supported.").append(System.lineSeparator())
+                        .append("You can manually download the latest version ")
+                        .append("here").color(ChatColor.AQUA).underlined(true)
+                        .event(new HoverEvent(HoverEvent.Action.SHOW_TEXT, TextComponent.fromLegacyText("Guardian Repository")))
+                        .event(new ClickEvent(ClickEvent.Action.OPEN_URL, "https://gitlab.com/Moderocky/Guardian/-/tags"))
+                        .append(".").retain(ComponentBuilder.FormatRetention.NONE).reset()
+                        .create(), sender))
                 .arg("reload", sender -> {
                     Guardian.getInstance().getGuardianConfig().load();
                     messenger.sendMessage(new ComponentBuilder()

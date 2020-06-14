@@ -13,7 +13,6 @@ import ch.njol.util.Kleenean;
 import com.moderocky.guardian.Guardian;
 import com.moderocky.guardian.api.GuardianAPI;
 import com.moderocky.guardian.api.Zone;
-import org.bukkit.Location;
 import org.bukkit.event.Event;
 import org.jetbrains.annotations.NotNull;
 
