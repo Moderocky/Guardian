@@ -28,7 +28,7 @@ generate-doc:
   stage: test
   image: openjdk
   script:
-    - javadoc -d /public -sourcepath /src/main/java
+    - javadoc -d /public -sourcepath /src/main/java com.moderocky.guardian.*
 
 pages:
   stage: deploy
