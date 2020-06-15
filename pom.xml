@@ -21,16 +21,6 @@
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.8.0</version>
-                <configuration>
-                    <source>1.8</source>
-                    <target>1.8</target>
-                    <encoding>UTF-8</encoding>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
                 <version>3.1.1</version>
                 <configuration>
@@ -39,9 +29,18 @@
                     <stylesheetfile>public/style/customstyle.css</stylesheetfile>
                     <!-- Include links to Bukkit API for Bukkit objects -->
                     <links>
-                        <link>https://mask.moderocky.com/</link>
                         <link>https://hub.spigotmc.org/javadocs/spigot/</link>
                     </links>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.8.0</version>
+                <configuration>
+                    <source>1.8</source>
+                    <target>1.8</target>
+                    <encoding>UTF-8</encoding>
                 </configuration>
             </plugin>
             <plugin>
@@ -76,11 +75,30 @@
                 <directory>src/main/resources</directory>
                 <filtering>false</filtering>
                 <includes>
-                    <include>*.yml</include>
+                    <include>*</include>
                 </includes>
             </resource>
         </resources>
     </build>
+
+    <reporting>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>3.1.1</version>
+                <configuration>
+                    <outputDirectory>../../../public</outputDirectory>
+                    <destDir>../../../public</destDir>
+                    <stylesheetfile>public/style/customstyle.css</stylesheetfile>
+                    <!-- Include links to Bukkit API for Bukkit objects -->
+                    <links>
+                        <link>https://hub.spigotmc.org/javadocs/spigot/</link>
+                    </links>
+                </configuration>
+            </plugin>
+        </plugins>
+    </reporting>
 
     <distributionManagement>
         <repository>

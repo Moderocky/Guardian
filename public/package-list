@@ -1,0 +1,13 @@
+com.moderocky.guardian
+com.moderocky.guardian.api
+com.moderocky.guardian.command
+com.moderocky.guardian.command.argument
+com.moderocky.guardian.config
+com.moderocky.guardian.listener
+com.moderocky.guardian.logic.ascendancy
+com.moderocky.guardian.logic.handler
+com.moderocky.guardian.logic.shape
+com.moderocky.guardian.skript.condition
+com.moderocky.guardian.skript.effect
+com.moderocky.guardian.skript.expression
+com.moderocky.guardian.util
