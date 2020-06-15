@@ -18,6 +18,13 @@ deploy:
   only:
     - master
 
+javadoc:jdk8:
+  stage: test
+  script:
+    - mvn $MAVEN_CLI_OPTS javadoc:aggregate-jar
+    - mvn $MAVEN_CLI_OPTS javadoc:javadoc
+  image: driv/docker-maven-java-oracle:latest
+
 pages:
   stage: deploy
   script:
