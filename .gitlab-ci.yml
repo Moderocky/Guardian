@@ -22,8 +22,13 @@ javadoc:jdk8:
   stage: test
   script:
     - mvn $MAVEN_CLI_OPTS javadoc:aggregate-jar
-    - mvn $MAVEN_CLI_OPTS javadoc:javadoc
   image: driv/docker-maven-java-oracle:latest
+
+generate-doc:
+  stage: test
+  image: openjdk
+  script:
+    - javadoc -d /public -sourcepath /src/main/java
 
 pages:
   stage: deploy
