@@ -12,7 +12,8 @@ cache:
 deploy:
   stage: deploy
   script:
-    - mvn $MAVEN_CLI_OPTS build
+    - mvn $MAVEN_CLI_OPTS package
+    - mvn $MAVEN_CLI_OPTS javadoc:javadoc
     - mvn $MAVEN_CLI_OPTS deploy
   only:
     - master
