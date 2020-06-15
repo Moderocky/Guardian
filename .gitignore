@@ -9,12 +9,6 @@ build/
 # Remaining folders
 libs/
 
-# Gradle files
-gradlew
-gradlew.bat
-settings.gradle
-build.gradle
-
 # Compiled class file
 *.class
 target/
@@ -36,7 +30,6 @@ target/
 *.zip
 *.tar.gz
 *.rar
-*.xml
 *.iml
 *.lst
 *.DS_Store

@@ -8,6 +8,7 @@ import com.moderocky.mask.annotation.DoNotInstantiate;
 import com.moderocky.mask.annotation.Internal;
 import com.moderocky.mask.command.Commander;
 import com.moderocky.mask.internal.utility.FileManager;
+import com.moderocky.mask.mirror.Mirror;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.chat.*;
 import org.bukkit.*;
@@ -511,9 +512,8 @@ public class GuardianAPI {
                 if (section == null) continue;
                 try {
                     NamespacedKey namespacedKey = new NamespacedKey(namespace, key);
-                    Class<? extends Zone> clarse = (Class<? extends Zone>) Class.forName(section.getString("class_loader"));
-                    Constructor<? extends Zone> constructor = clarse.getConstructor(NamespacedKey.class, ConfigurationSection.class);
-                    Zone zone = constructor.newInstance(namespacedKey, section);
+                    Mirror<Class<Zone>> mirror = Mirror.<Zone>mirror(section.getString("class_loader"));
+                    Zone zone = mirror.instantiate(namespacedKey, section);
                     zoneMap.put(namespacedKey, zone);
                     addCache(zone);
                 } catch (Throwable ignore) {

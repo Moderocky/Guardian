@@ -1,0 +1,30 @@
+image: maven:latest
+
+variables:
+  MAVEN_CLI_OPTS: "-s .m2/settings.xml --batch-mode"
+  MAVEN_OPTS: "-Dmaven.repo.local=.m2/repository"
+
+cache:
+  paths:
+    - .m2/repository/
+    - target/
+
+deploy:
+  stage: deploy
+  script:
+    - mvn $MAVEN_CLI_OPTS build
+    - mvn $MAVEN_CLI_OPTS deploy
+  only:
+    - master
+
+pages:
+  stage: deploy
+  script:
+    - mkdir .public
+    - cp -r * .public
+    - mv .public public
+  artifacts:
+    paths:
+      - public
+  only:
+    - master
