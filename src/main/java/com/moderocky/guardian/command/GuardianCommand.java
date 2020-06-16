@@ -26,6 +26,13 @@ public class GuardianCommand extends Commander<CommandSender> implements Wrapped
     private final @NotNull Messenger messenger = Guardian.getMessenger();
     private final @NotNull GuardianAPI api = Guardian.getApi();
 
+    public static GuardianCommand command;
+
+    public GuardianCommand() {
+        super();
+        command = this;
+    }
+
     @Override
     public @NotNull List<String> getAliases() {
         return Arrays.asList("g", "guard");

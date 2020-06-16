@@ -39,6 +39,13 @@ public class ZoneCommand extends Commander<CommandSender> implements WrappedComm
     private final @NotNull Messenger messenger = Guardian.getMessenger();
     private final @NotNull GuardianAPI api = Guardian.getApi();
 
+    public static ZoneCommand command;
+
+    public ZoneCommand() {
+        super();
+        command = this;
+    }
+
     @Override
     @SuppressWarnings("unchecked")
     public @NotNull Main create() {
