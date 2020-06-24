@@ -4,13 +4,11 @@ import com.moderocky.guardian.Guardian;
 import com.moderocky.guardian.api.GuardianAPI;
 import com.moderocky.guardian.config.GuardianConfig;
 import com.moderocky.guardian.util.Messenger;
+import com.moderocky.mask.api.MagicList;
 import com.moderocky.mask.command.Commander;
 import com.moderocky.mask.template.WrappedCommand;
 import net.md_5.bungee.api.ChatColor;
-import net.md_5.bungee.api.chat.ClickEvent;
-import net.md_5.bungee.api.chat.ComponentBuilder;
-import net.md_5.bungee.api.chat.HoverEvent;
-import net.md_5.bungee.api.chat.TextComponent;
+import net.md_5.bungee.api.chat.*;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.jetbrains.annotations.NotNull;
@@ -19,14 +17,14 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 public class GuardianCommand extends Commander<CommandSender> implements WrappedCommand {
 
+    public static GuardianCommand command;
     private final @NotNull GuardianConfig config = Guardian.getInstance().getGuardianConfig();
     private final @NotNull Messenger messenger = Guardian.getMessenger();
     private final @NotNull GuardianAPI api = Guardian.getApi();
-
-    public static GuardianCommand command;
 
     public GuardianCommand() {
         super();
@@ -61,6 +59,13 @@ public class GuardianCommand extends Commander<CommandSender> implements Wrapped
     @Override
     public @NotNull Main create() {
         return command("guardian")
+                .arg("flags", sender -> {
+                            ComponentBuilder builder = new ComponentBuilder("List of Flags:").color(ChatColor.WHITE);
+                            for (BaseComponent[] flag : new MagicList<>(api.getProtectionFlags()).collect((Function<String, BaseComponent[]>) string -> TextComponent.fromLegacyText(string, ChatColor.GRAY))) {
+                                builder.append(System.lineSeparator()).append(flag);
+                            }
+                            messenger.sendMessage(builder.create());
+                        })
                 .arg("about", sender -> messenger.sendMessage(new ComponentBuilder("").color(ChatColor.WHITE)
                         .append("Guardian").color(ChatColor.AQUA)
                         .event(new HoverEvent(HoverEvent.Action.SHOW_TEXT, TextComponent.fromLegacyText("Visit the website?")))
