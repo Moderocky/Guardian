@@ -1,5 +1,6 @@
 package com.moderocky.guardian.api;
 
+import com.google.gson.JsonObject;
 import org.bukkit.configuration.ConfigurationSection;
 import org.jetbrains.annotations.NotNull;
 
@@ -10,8 +11,8 @@ public interface Child<Z extends Zone> {
 
     void setParent(@NotNull Z parent);
 
-    void save(@NotNull ConfigurationSection section);
+    void save(final @NotNull JsonObject section);
 
-    void load(@NotNull ConfigurationSection section);
+    void load(final @NotNull JsonObject section);
 
 }

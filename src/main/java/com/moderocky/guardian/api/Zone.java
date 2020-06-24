@@ -1,6 +1,7 @@
 package com.moderocky.guardian.api;
 
 import com.google.common.base.Ascii;
+import com.google.gson.JsonObject;
 import com.moderocky.mask.api.commons.Describable;
 import com.moderocky.mask.api.commons.Nameable;
 import org.bukkit.Chunk;
@@ -30,9 +31,9 @@ public abstract class Zone implements Nameable, Describable {
         this.key = id;
     }
 
-    public Zone(@NotNull NamespacedKey id, @NotNull ConfigurationSection section) {
+    public Zone(@NotNull NamespacedKey id, @NotNull JsonObject object) {
         this.key = id;
-        load(section);
+        load(object);
     }
 
     public List<UUID> getAllowedPlayers() {
@@ -239,9 +240,9 @@ public abstract class Zone implements Nameable, Describable {
 
     public abstract @NotNull Location getLocation();
 
-    public abstract void save(@NotNull ConfigurationSection section);
+    public abstract void save(final @NotNull JsonObject object);
 
-    public abstract void load(@NotNull ConfigurationSection section);
+    public abstract void load(final @NotNull JsonObject object);
 
     private String convertCase(String string) {
         String[] words = string.split("_");

@@ -1,6 +1,10 @@
 package com.moderocky.guardian.api;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import com.moderocky.guardian.Guardian;
+import dev.moderocky.mirror.Mirror;
 import org.bukkit.NamespacedKey;
 import org.bukkit.configuration.ConfigurationSection;
 import org.jetbrains.annotations.NotNull;
@@ -22,40 +26,42 @@ public interface Parent<Z extends Zone> {
 
     void clearChildren();
 
-    default void saveChildren(ConfigurationSection section) {
+    default void saveChildren(final JsonObject section) {
+        JsonArray array = new JsonArray();
         for (Z child : getChildren()) {
+            JsonObject object = new JsonObject();
             String id = child.getKey().getKey();
-            section.set("children." + id + ".namespace", child.getKey().getNamespace());
-            section.set("children." + id + ".is_child", true);
-            ConfigurationSection childSection = section.getConfigurationSection(id);
-            if (childSection == null) continue;
-            child.save(childSection);
+            child.save(object);
+            object.addProperty("namespace", child.getKey().getNamespace());
+            object.addProperty("key", child.getKey().getKey());
+            object.addProperty("class_loader", child.getClass().getName());
+            array.add(object);
         }
+        section.add("children", array);
     }
 
     @SuppressWarnings("all")
-    default void loadChildren(ConfigurationSection section) {
+    default void loadChildren(final JsonObject section) {
         GuardianAPI api = Guardian.getApi();
-        ConfigurationSection childSection = section.getConfigurationSection("children");
-        if (childSection == null) return;
-        List<String> keys = new ArrayList<>(childSection.getKeys(false));
-        for (String key : keys) {
-            ConfigurationSection sect = childSection.getConfigurationSection(key);
-            if (sect == null) continue;
-            String namespace = sect.getString("namespace");
-            if (namespace == null || namespace.length() < 1) continue;
+        if (section.has("children")) return;
+        JsonArray array = section.getAsJsonArray("children");
+        for (JsonElement element : array) {
+            JsonObject object = element.getAsJsonObject();
+            if (!object.has("class_loader")) continue;
+            String namespace = object.get("namespace").getAsString();
+            String key = object.get("key").getAsString();
             try {
                 NamespacedKey namespacedKey = new NamespacedKey(namespace, key);
-                Class<Z> clarse = (Class<Z>) Class.forName(sect.getString("class_loader"));
-                Constructor<Z> constructor = clarse.getConstructor(NamespacedKey.class, ConfigurationSection.class);
-                Z zone = constructor.newInstance(namespacedKey, sect);
+                Mirror<Class<Z>> mirror = Mirror.<Z>mirror(object.get("class_loader").getAsString());
+                Z zone = mirror.<Z>instantiate(namespacedKey, object);
                 if (zone instanceof Child) {
                     ((Child) zone).setParent((Zone) this);
                 }
                 addChild(zone);
-            } catch (Throwable ignore) {
-                ignore.printStackTrace();
+            } catch (Throwable throwable) {
+                throwable.printStackTrace();
             }
+
         }
     }
 

@@ -80,6 +80,10 @@ public class GuardianConfig implements Config {
     @Configurable("settings")
     public long actionCacheResetDelay = 30;
 
+    @Configurable("settings")
+    @Configurable.Comment("Compress the stored zone data?")
+    public boolean compressData = true;
+
     public GuardianConfig() {
         load();
     }

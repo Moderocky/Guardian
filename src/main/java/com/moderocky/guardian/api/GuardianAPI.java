@@ -1,11 +1,15 @@
 package com.moderocky.guardian.api;
 
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import com.moderocky.guardian.Guardian;
 import com.moderocky.guardian.config.GuardianConfig;
 import com.moderocky.guardian.listener.BlanketUncaughtListener;
 import com.moderocky.guardian.util.ParticleUtils;
 import com.moderocky.mask.annotation.DoNotInstantiate;
 import com.moderocky.mask.annotation.Internal;
+import com.moderocky.mask.api.MagicList;
 import com.moderocky.mask.command.Commander;
 import com.moderocky.mask.internal.utility.FileManager;
 import com.moderocky.mask.mirror.Mirror;
@@ -38,6 +42,8 @@ import java.util.*;
 
 @SuppressWarnings("unused")
 public class GuardianAPI {
+
+    public static final JsonParser PARSER = new JsonParser();
 
     private final @NotNull HashMap<NamespacedKey, Zone> zoneMap = new HashMap<>();
     private final @NotNull HashMap<World, List<NamespacedKey>> worldCache = new HashMap<>();
@@ -445,7 +451,7 @@ public class GuardianAPI {
         worldCache.clear();
     }
 
-    protected void addCache(Zone zone) {
+    protected void addCache(@NotNull Zone zone) {
         {
             List<NamespacedKey> keys = worldCache.getOrDefault(zone.getWorld(), new ArrayList<>());
             if (!keys.contains(zone.getKey())) keys.add(zone.getKey());
@@ -482,43 +488,37 @@ public class GuardianAPI {
     public void save() {
         File file = getStorageFile();
         FileManager.clear(file);
-        FileConfiguration configuration = YamlConfiguration.loadConfiguration(file);
+        JsonObject storage = new JsonObject();
         for (Zone zone : zoneMap.values()) {
-            String key = zone.getKey().getNamespace() + "." + zone.getKey().getKey();
-            configuration.set(key + ".class_loader", zone.getClass().getName());
-            if (configuration.isConfigurationSection(key)) {
-                ConfigurationSection section = configuration.getConfigurationSection(key);
-                if (section != null) {
-                    zone.save(section);
-                    section.set("class_loader", zone.getClass().getName());
-                    continue;
-                }
-            }
-            ConfigurationSection section = configuration.createSection(key);
-            zone.save(section);
+            String key = zone.getKey().toString();
+            JsonObject object = storage.has("key") ? storage.getAsJsonObject("key") : new JsonObject();
+            zone.save(object);
+            object.addProperty("class_loader", zone.getClass().getName());
+            storage.add(key, object);
         }
-        FileManager.save(configuration, file);
+        if (config.compressData) FileManager.writeCompressed(file, storage.toString());
+        else FileManager.write(file, storage.toString());
     }
 
     @SuppressWarnings("all")
     public void load() {
         File file = getStorageFile();
-        FileConfiguration configuration = YamlConfiguration.loadConfiguration(file);
-        List<String> namespaces = new ArrayList<>(configuration.getKeys(false));
-        for (String namespace : namespaces) {
-            List<String> keys = new ArrayList<>(configuration.getConfigurationSection(namespace).getKeys(false));
-            for (String key : keys) {
-                ConfigurationSection section = configuration.getConfigurationSection(namespace + "." + key);
-                if (section == null) continue;
-                try {
-                    NamespacedKey namespacedKey = new NamespacedKey(namespace, key);
-                    Mirror<Class<Zone>> mirror = Mirror.<Zone>mirror(section.getString("class_loader"));
-                    Zone zone = mirror.instantiate(namespacedKey, section);
-                    zoneMap.put(namespacedKey, zone);
-                    addCache(zone);
-                } catch (Throwable ignore) {
-                    ignore.printStackTrace();
-                }
+        String string = FileManager.readCompressed(file);
+        if (string == null || string.trim().isEmpty()) return;
+        JsonObject storage = PARSER.parse(string).getAsJsonObject();
+        for (Map.Entry<String, JsonElement> entry : storage.entrySet()) {
+            JsonObject object = entry.getValue().isJsonObject() ? entry.getValue().getAsJsonObject() : new JsonObject();
+            if (!object.has("class_loader")) continue;
+            try {
+                String namespace = entry.getKey().split(":")[0];
+                String key = entry.getKey().split(":")[1];
+                NamespacedKey namespacedKey = new NamespacedKey(namespace, key);
+                Mirror<Class<Zone>> mirror = Mirror.<Zone>mirror(object.get("class_loader").getAsString());
+                final Zone zone = mirror.<Zone>constructor(NamespacedKey.class, JsonObject.class).newInstance(namespacedKey, object);
+                zoneMap.put(namespacedKey, zone);
+                addCache(zone);
+            } catch (Throwable throwable) {
+                throwable.printStackTrace();
             }
         }
     }
@@ -529,7 +529,7 @@ public class GuardianAPI {
     }
 
     private File getStorageFile() {
-        File file = new File("plugins/Guardian/", "zone_storage.yml");
+        File file = new File("plugins/Guardian/", "zone_storage.cjs");
         FileManager.putIfAbsent(file);
         return file;
     }

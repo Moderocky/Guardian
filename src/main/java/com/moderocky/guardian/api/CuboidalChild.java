@@ -1,5 +1,6 @@
 package com.moderocky.guardian.api;
 
+import com.google.gson.JsonObject;
 import com.moderocky.guardian.Guardian;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -44,7 +45,7 @@ public class CuboidalChild extends CuboidalZone implements Child<CuboidalZone> {
         api = Guardian.getApi();
     }
 
-    public CuboidalChild(@NotNull NamespacedKey id, @NotNull ConfigurationSection section) {
+    public CuboidalChild(@NotNull NamespacedKey id, @NotNull JsonObject section) {
         super(id, section);
     }
 
@@ -123,12 +124,12 @@ public class CuboidalChild extends CuboidalZone implements Child<CuboidalZone> {
     }
 
     @Override
-    public void save(@NotNull ConfigurationSection section) {
+    public void save(@NotNull JsonObject section) {
         super.save(section);
     }
 
     @Override
-    public void load(@NotNull ConfigurationSection section) {
+    public void load(@NotNull JsonObject section) {
         super.load(section);
     }
 

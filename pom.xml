@@ -6,7 +6,7 @@
 
     <groupId>com.moderocky</groupId>
     <artifactId>Guardian</artifactId>
-    <version>1.1.2</version>
+    <version>1.2.0</version>
     <packaging>jar</packaging>
     <name>${project.artifactId}</name>
 
@@ -168,7 +168,7 @@
         <dependency>
             <groupId>com.moderocky</groupId>
             <artifactId>Mask</artifactId>
-            <version>2.0.8</version>
+            <version>2.0.9</version>
             <scope>compile</scope>
             <exclusions>
                 <exclusion>

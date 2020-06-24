@@ -50,13 +50,13 @@ public class ParticleUtils {
     public static void drawBox(Particle particle, @Nullable Object data, BoundingBox box, World world, double distance) {
         Location c1 = box.getMin().toLocation(world);
         Location c2 = c1.clone();
-        c2.setX(box.getMaxX() + 1);
+        c2.setX(box.getMaxX());
         Location c3 = c1.clone();
-        c3.setZ(box.getMaxZ() + 1);
+        c3.setZ(box.getMaxZ());
         Location c4 = c1.clone();
-        c4.setX(box.getMaxX() + 1);
-        c4.setZ(box.getMaxZ() + 1);
-        Location c8 = box.getMax().toLocation(world).add(1, 1, 1);
+        c4.setX(box.getMaxX());
+        c4.setZ(box.getMaxZ());
+        Location c8 = box.getMax().toLocation(world);
         Location c7 = c8.clone();
         c7.setX(box.getMinX());
         Location c6 = c8.clone();
@@ -88,7 +88,7 @@ public class ParticleUtils {
         Location c4 = c1.clone();
         c4.setX(box.getMaxX() + 1);
         c4.setZ(box.getMaxZ() + 1);
-        Location c8 = box.getMax().toLocation(world).add(1, 1, 1);
+        Location c8 = box.getMax().toLocation(world);
         Location c7 = c8.clone();
         c7.setX(box.getMinX());
         Location c6 = c8.clone();

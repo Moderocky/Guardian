@@ -1,8 +1,12 @@
 package com.moderocky.guardian.api;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import com.moderocky.guardian.Guardian;
 import com.moderocky.guardian.logic.handler.LogicUtils;
 import com.moderocky.guardian.logic.shape.Vertex;
+import com.moderocky.mask.api.MagicList;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.configuration.ConfigurationSection;
@@ -40,8 +44,8 @@ public class CuboidalZone extends Zone implements Parent<CuboidalChild> {
         api = Guardian.getApi();
     }
 
-    public CuboidalZone(@NotNull NamespacedKey id, @NotNull ConfigurationSection section) {
-        super(id, section);
+    public CuboidalZone(@NotNull NamespacedKey id, @NotNull JsonObject object) {
+        super(id, object);
     }
 
     public static CuboidalZone createZone(Player player, String id, Location l1, Location l2) {
@@ -140,47 +144,58 @@ public class CuboidalZone extends Zone implements Parent<CuboidalChild> {
     }
 
     @Override
-    public void save(@NotNull ConfigurationSection section) {
+    public void save(final @NotNull JsonObject object) {
         api = Guardian.getApi();
         World world = getWorld();
         Location l1 = boundingBox.getMin().toLocation(world);
         Location l2 = boundingBox.getMax().toLocation(world);
-        section.set("location", api.serialisePosition(getLocation()));
-        section.set("min", api.serialisePosition(l1));
-        section.set("max", api.serialisePosition(l2));
-        section.set("flags", getFlags());
-        List<String> players = new ArrayList<>();
+        object.addProperty("location", api.serialisePosition(getLocation()));
+        object.addProperty("min", api.serialisePosition(l1));
+        object.addProperty("max", api.serialisePosition(l2));
+        JsonArray flags = new JsonArray();
+        for (String flag : getFlags()) {
+            flags.add(flag);
+        }
+        object.add("flags", flags);
+        JsonArray players = new JsonArray();
         getAllowedPlayers().forEach(uuid -> players.add(uuid.toString()));
-        section.set("players", players);
-        section.set("owner", getOwner() != null ? getOwner().toString() : null);
-        section.set("name", name);
-        section.set("desc", description == null ? null : Arrays.asList(description.split("\n")));
-        saveChildren(section);
+        object.add("players", players);
+        object.addProperty("owner", getOwner() != null ? getOwner().toString() : null);
+        object.addProperty("name", name);
+        JsonArray desc = new JsonArray();
+        if (description != null) for (String s : description.split("\n")) {
+            desc.add(s);
+        }
+        object.add("description", description == null ? null : desc);
+        saveChildren(object);
     }
 
     @Override
-    public void load(@NotNull ConfigurationSection section) {
+    public void load(final @NotNull JsonObject object) {
         api = Guardian.getApi();
-        this.location = api.deserialisePosition(section.getString("location"));
-        Location l1 = api.deserialisePosition(section.getString("min"));
-        Location l2 = api.deserialisePosition(section.getString("max"));
+        this.location = api.deserialisePosition(object.get("location").getAsString());
+        Location l1 = api.deserialisePosition(object.get("min").getAsString());
+        Location l2 = api.deserialisePosition(object.get("max").getAsString());
         this.boundingBox = BoundingBox.of(l1, l2);
-        List<String> list = section.getStringList("flags");
-        for (String string : list) {
-            addFlag(string);
+        List<String> list = new MagicList<>();
+        for (JsonElement element : object.getAsJsonArray("flags")) {
+            addFlag(element.getAsString());
         }
-        List<String> plist = section.getStringList("players");
-        for (String string : plist) {
-            addPlayer(UUID.fromString(string));
+        for (JsonElement element : object.getAsJsonArray("players")) {
+            addPlayer(UUID.fromString(element.getAsString()));
         }
-        String string = section.getString("owner");
-        if (string != null) setOwner(UUID.fromString(string));
+        if (object.has("owner") && object.get("owner").isJsonPrimitive()) {
+        String string = object.get("owner").getAsString();
+        setOwner(UUID.fromString(string));
+        }
         else setOwner(null);
-        name = section.getString("name");
-        List<String> desc = section.getStringList("desc");
-        if (desc.isEmpty()) description = null;
-        else description = String.join(System.lineSeparator(), desc);
-        loadChildren(section);
+        name = object.get("name") != null && !object.get("name").isJsonNull() ? object.get("name").getAsString() : null;
+        if (!object.has("description") || object.get("description").isJsonNull()) description = null;
+        else {
+            List<String> desc = MagicList.from(object.getAsJsonArray("description"), JsonElement::getAsString);
+            description = String.join(System.lineSeparator(), desc);
+        }
+        loadChildren(object);
     }
 
     @Override
@@ -210,7 +225,7 @@ public class CuboidalZone extends Zone implements Parent<CuboidalChild> {
 
     @Override
     public boolean hasChildren() {
-        return children != null && !children.isEmpty();
+        return !children.isEmpty();
     }
 
     @Override

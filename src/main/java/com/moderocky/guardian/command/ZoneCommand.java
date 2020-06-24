@@ -340,8 +340,6 @@ public class ZoneCommand extends Commander<CommandSender> implements WrappedComm
                                         ((CuboidalZone) zone).showBounds();
                                     else if (zone instanceof PolyhedralZone)
                                         ((PolyhedralZone) zone).showBounds();
-                                    if (sender instanceof Player && (zone.getCuboidalSize() < 800))
-                                        api.displayBlocks(zone, (Player) sender);
                                 },
                                 new ArgZone()
                         )

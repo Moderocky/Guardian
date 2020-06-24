@@ -1,11 +1,14 @@
 package com.moderocky.guardian.api;
 
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import com.moderocky.guardian.Guardian;
 import com.moderocky.guardian.logic.handler.LogicUtils;
 import com.moderocky.guardian.logic.handler.PolyProcessor;
 import com.moderocky.guardian.logic.shape.Polyhedron;
 import com.moderocky.guardian.logic.shape.Vertex;
 import com.moderocky.guardian.util.ParticleUtils;
+import com.moderocky.mask.api.MagicList;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.configuration.ConfigurationSection;
@@ -18,6 +21,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
+import java.util.function.Function;
 
 @SuppressWarnings("unused")
 public class PolyhedralZone extends Zone {
@@ -45,7 +49,7 @@ public class PolyhedralZone extends Zone {
         this.location = boundingBox.getCenter().toLocation(locations[0].getWorld());
     }
 
-    public PolyhedralZone(@NotNull NamespacedKey id, @NotNull ConfigurationSection section) {
+    public PolyhedralZone(@NotNull NamespacedKey id, @NotNull JsonObject section) {
         super(id, section);
     }
 
@@ -157,48 +161,44 @@ public class PolyhedralZone extends Zone {
     }
 
     @Override
-    public void save(@NotNull ConfigurationSection section) {
+    public void save(final @NotNull JsonObject object) {
         api = Guardian.getApi();
         World world = getWorld();
-        section.set("location", api.serialisePosition(getLocation()));
-        List<String> strings = new ArrayList<>();
+        object.addProperty("location", api.serialisePosition(getLocation()));
+        MagicList<String> strings = new MagicList<>();
         polyhedron.getLocations(world).forEach(location -> strings.add(api.serialisePosition(location)));
-        section.set("vertices", strings);
-        section.set("flags", getFlags());
-        List<String> players = new ArrayList<>();
-        getAllowedPlayers().forEach(uuid -> players.add(uuid.toString()));
-        section.set("players", players);
-        section.set("owner", getOwner() != null ? getOwner().toString() : null);
-        section.set("name", name);
-        section.set("desc", description == null ? null : Arrays.asList(description.split("\n")));
+        object.add("vertices", strings.toJsonStringArray());
+        object.add("flags", new MagicList<>(getFlags()).toJsonStringArray());
+        MagicList<String> players = new MagicList<>(getAllowedPlayers()).collect((Function<UUID, String>) UUID::toString);
+        object.add("players", players.toJsonStringArray());
+        object.addProperty("owner", getOwner() != null ? getOwner().toString() : null);
+        object.addProperty("name", name);
+        object.add("desc", description == null ? null : new MagicList<>(description.split("\n")).toJsonStringArray());
     }
 
     @Override
-    public void load(@NotNull ConfigurationSection section) {
+    public void load(final @NotNull JsonObject object) {
         api = Guardian.getApi();
-        this.location = api.deserialisePosition(section.getString("location"));
-        {
-            List<String> list = section.getStringList("vertices");
-            List<Location> locations = new ArrayList<>();
-            for (String string : list) {
-                locations.add(api.deserialisePosition(string));
-            }
-            polyhedron = new Polyhedron(LogicUtils.toVertices(locations));
-        }
+        this.location = api.deserialisePosition(object.get("location").getAsString());
+        MagicList<Vertex> vertices = MagicList
+                .from(object.getAsJsonArray("vertices"), JsonElement::getAsString)
+                .collect((Function<String, Location>) string -> api.deserialisePosition(string))
+                .collect((Function<Location, Vertex>) Vertex::from);
+        polyhedron = new Polyhedron(vertices);
         this.boundingBox = polyhedron.getBoundingBox();
-        for (String string : section.getStringList("flags")) {
+        for (String string : MagicList.from(object.getAsJsonArray("flags"), JsonElement::getAsString)) {
             addFlag(string);
         }
-        for (String string : section.getStringList("players")) {
+        for (String string : MagicList.from(object.getAsJsonArray("players"), JsonElement::getAsString)) {
             addPlayer(UUID.fromString(string));
         }
-        String string = section.getString("owner");
-        if (string != null) setOwner(UUID.fromString(string));
+        if (object.has("owner") && object.get("owner").isJsonPrimitive()) {
+            String string = object.get("owner").getAsString();
+            setOwner(UUID.fromString(string));
+        }
         else setOwner(null);
-        name = section.getString("name");
-        List<String> desc = section.getStringList("desc");
-        if (desc.isEmpty()) description = null;
-        else description = String.join(System.lineSeparator(), desc);
+        name = object.get("name") != null && !object.get("name").isJsonNull() ? object.get("name").getAsString() : null;
+        if (!object.has("description") || object.get("description").isJsonNull()) description = null;
     }
 
     @Override
