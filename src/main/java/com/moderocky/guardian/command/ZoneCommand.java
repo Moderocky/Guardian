@@ -35,11 +35,10 @@ import java.util.function.Consumer;
 
 public class ZoneCommand extends Commander<CommandSender> implements WrappedCommand {
 
+    public static ZoneCommand command;
     private final @NotNull GuardianConfig config = Guardian.getInstance().getGuardianConfig();
     private final @NotNull Messenger messenger = Guardian.getMessenger();
     private final @NotNull GuardianAPI api = Guardian.getApi();
-
-    public static ZoneCommand command;
 
     public ZoneCommand() {
         super();

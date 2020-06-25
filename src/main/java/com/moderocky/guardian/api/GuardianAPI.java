@@ -9,17 +9,14 @@ import com.moderocky.guardian.listener.BlanketUncaughtListener;
 import com.moderocky.guardian.util.ParticleUtils;
 import com.moderocky.mask.annotation.DoNotInstantiate;
 import com.moderocky.mask.annotation.Internal;
-import com.moderocky.mask.api.MagicList;
 import com.moderocky.mask.command.Commander;
 import com.moderocky.mask.internal.utility.FileManager;
 import com.moderocky.mask.mirror.Mirror;
 import net.md_5.bungee.api.ChatColor;
+import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.*;
 import org.bukkit.*;
 import org.bukkit.block.Block;
-import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
@@ -36,7 +33,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
-import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.util.*;
 
@@ -256,7 +252,7 @@ public class GuardianAPI {
 
     public void denyEvent(Player player) {
         if (config.actionDenyMessage != null)
-            player.sendActionBar(config.actionDenyMessage);
+            player.spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent.fromLegacyText(config.actionDenyMessage));
     }
 
     public void displayBlocks(Zone zone, Player player) {
@@ -280,7 +276,9 @@ public class GuardianAPI {
         if (l1 == null || l2 == null || l1.getWorld() != l2.getWorld() || l1.distanceSquared(l2) > (config.maxZoneDiameter * config.maxZoneDiameter))
             return;
         double d = Math.max(0.25, Math.min(1, (l1.distanceSquared(l2) / ((config.maxZoneDiameter * config.maxZoneDiameter) - l1.distanceSquared(l2)))));
-        ParticleUtils.drawBox(Particle.END_ROD, null, BoundingBox.of(l1, l2), l1.getWorld(), d);
+        BoundingBox box = BoundingBox.of(l1, l2)
+                .expand(0, 0, 0, 1, 1, 1);
+        ParticleUtils.drawBox(Particle.END_ROD, null, box, l1.getWorld(), d);
         highlightBlock(l1.getBlock(), Particle.FALLING_DUST, Material.REDSTONE_BLOCK.createBlockData());
         highlightBlock(l2.getBlock(), Particle.FALLING_DUST, Material.LAPIS_BLOCK.createBlockData());
     }

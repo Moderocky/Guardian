@@ -3,6 +3,7 @@ package com.moderocky.guardian.config;
 import com.moderocky.guardian.Guardian;
 import com.moderocky.mask.annotation.Configurable;
 import com.moderocky.mask.gui.ItemFactory;
+import com.moderocky.mask.mirror.Mirror;
 import com.moderocky.mask.template.Config;
 import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
@@ -13,6 +14,7 @@ import org.bukkit.persistence.PersistentDataType;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 
 public class GuardianConfig implements Config {
@@ -104,7 +106,9 @@ public class GuardianConfig implements Config {
             itemMeta.setDisplayName("§6Zone Wand");
             itemMeta.setLore(Arrays.asList("§7LClick to set Pos #1", "§7RClick to set Pos #2"));
             itemMeta.addEnchant(Enchantment.VANISHING_CURSE, 1, true);
-            itemMeta.setDestroyableKeys(Collections.emptyList());
+            if (Mirror.classExists("co.aikar.timings.Timing"))
+                new Mirror<>(itemMeta).method("setDestroyableKeys", Collection.class)
+                        .invoke(Collections.emptyList());
             itemMeta.getPersistentDataContainer().set(Guardian.getNamespacedKey("wand"), PersistentDataType.BYTE, (byte) 1);
             itemMeta.addItemFlags(ItemFlag.values());
         }).create();
@@ -116,7 +120,9 @@ public class GuardianConfig implements Config {
             itemMeta.setDisplayName("§6Zone Polywand");
             itemMeta.setLore(Arrays.asList("§7LClick to add a vertex", "§7RClick to reset vertices"));
             itemMeta.addEnchant(Enchantment.VANISHING_CURSE, 1, true);
-            itemMeta.setDestroyableKeys(Collections.emptyList());
+            if (Mirror.classExists("co.aikar.timings.Timing"))
+                new Mirror<>(itemMeta).method("setDestroyableKeys", Collection.class)
+                        .invoke(Collections.emptyList());
             itemMeta.getPersistentDataContainer().set(Guardian.getNamespacedKey("polywand"), PersistentDataType.BYTE, (byte) 1);
             itemMeta.addItemFlags(ItemFlag.values());
         }).create();

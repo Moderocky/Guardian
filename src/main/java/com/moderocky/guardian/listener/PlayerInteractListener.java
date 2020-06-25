@@ -5,6 +5,8 @@ import com.moderocky.guardian.api.GuardianAPI;
 import com.moderocky.guardian.api.Zone;
 import com.moderocky.guardian.config.GuardianConfig;
 import com.moderocky.mask.template.CompleteListener;
+import net.md_5.bungee.api.ChatMessageType;
+import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.Particle;
@@ -43,11 +45,11 @@ public class PlayerInteractListener implements CompleteListener {
             if (event.getAction() == Action.LEFT_CLICK_BLOCK) {
                 player.getPersistentDataContainer().set(Guardian.getNamespacedKey("wand_pos_1"), PersistentDataType.STRING, api.serialisePosition(block.getLocation()));
                 location.getWorld().spawnParticle(Particle.BLOCK_DUST, location, 12, Material.REDSTONE_BLOCK.createBlockData());
-                player.sendActionBar(config.setPosition.replace("%s", "1"));
+                player.spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent.fromLegacyText(config.setPosition.replace("%s", "1")));
             } else if (event.getAction() == Action.RIGHT_CLICK_BLOCK) {
                 player.getPersistentDataContainer().set(Guardian.getNamespacedKey("wand_pos_2"), PersistentDataType.STRING, api.serialisePosition(block.getLocation()));
                 location.getWorld().spawnParticle(Particle.BLOCK_DUST, location, 12, Material.LAPIS_BLOCK.createBlockData());
-                player.sendActionBar(config.setPosition.replace("%s", "2"));
+                player.spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent.fromLegacyText(config.setPosition.replace("%s", "2")));
             }
             api.displayBox(player);
         } else if (api.isPolywand(itemStack)) {
@@ -61,10 +63,10 @@ public class PlayerInteractListener implements CompleteListener {
                 else des = api.serialisePosition(block.getLocation());
                 player.getPersistentDataContainer().set(Guardian.getNamespacedKey("polywand_pos"), PersistentDataType.STRING, des);
                 location.getWorld().spawnParticle(Particle.BLOCK_DUST, location, 12, Material.REDSTONE_BLOCK.createBlockData());
-                player.sendActionBar(config.setPosition.replace("%s", des.split("/").length + ""));
+                player.spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent.fromLegacyText(config.setPosition.replace("%s", des.split("/").length + "")));
             } else if (event.getAction() == Action.RIGHT_CLICK_BLOCK) {
                 player.getPersistentDataContainer().set(Guardian.getNamespacedKey("polywand_pos"), PersistentDataType.STRING, "");
-                player.sendActionBar(config.clearPosition);
+                player.spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent.fromLegacyText(config.clearPosition));
             }
             api.displayPolyBox(player);
         }

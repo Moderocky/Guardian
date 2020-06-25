@@ -9,7 +9,6 @@ import com.moderocky.guardian.logic.shape.Vertex;
 import com.moderocky.mask.api.MagicList;
 import org.bukkit.*;
 import org.bukkit.block.Block;
-import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
@@ -17,7 +16,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
@@ -185,10 +183,9 @@ public class CuboidalZone extends Zone implements Parent<CuboidalChild> {
             addPlayer(UUID.fromString(element.getAsString()));
         }
         if (object.has("owner") && object.get("owner").isJsonPrimitive()) {
-        String string = object.get("owner").getAsString();
-        setOwner(UUID.fromString(string));
-        }
-        else setOwner(null);
+            String string = object.get("owner").getAsString();
+            setOwner(UUID.fromString(string));
+        } else setOwner(null);
         name = object.get("name") != null && !object.get("name").isJsonNull() ? object.get("name").getAsString() : null;
         if (!object.has("description") || object.get("description").isJsonNull()) description = null;
         else {

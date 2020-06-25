@@ -60,12 +60,12 @@ public class GuardianCommand extends Commander<CommandSender> implements Wrapped
     public @NotNull Main create() {
         return command("guardian")
                 .arg("flags", sender -> {
-                            ComponentBuilder builder = new ComponentBuilder("List of Flags:").color(ChatColor.WHITE);
-                            for (BaseComponent[] flag : new MagicList<>(api.getProtectionFlags()).collect((Function<String, BaseComponent[]>) string -> TextComponent.fromLegacyText(string, ChatColor.GRAY))) {
-                                builder.append(System.lineSeparator()).append(flag);
-                            }
-                            messenger.sendMessage(builder.create());
-                        })
+                    ComponentBuilder builder = new ComponentBuilder("List of Flags:").color(ChatColor.WHITE);
+                    for (BaseComponent[] flag : new MagicList<>(api.getProtectionFlags()).collect((Function<String, BaseComponent[]>) string -> TextComponent.fromLegacyText(string, ChatColor.GRAY))) {
+                        builder.append(System.lineSeparator()).append(flag);
+                    }
+                    messenger.sendMessage(builder.create());
+                })
                 .arg("about", sender -> messenger.sendMessage(new ComponentBuilder("").color(ChatColor.WHITE)
                         .append("Guardian").color(ChatColor.AQUA)
                         .event(new HoverEvent(HoverEvent.Action.SHOW_TEXT, TextComponent.fromLegacyText("Visit the website?")))
@@ -91,7 +91,7 @@ public class GuardianCommand extends Commander<CommandSender> implements Wrapped
                         .event(new HoverEvent(HoverEvent.Action.SHOW_TEXT, TextComponent.fromLegacyText("Learn about addon development?")))
                         .event(new ClickEvent(ClickEvent.Action.OPEN_URL, "https://gitlab.com/Moderocky/Guardian/-/wikis/Addon-Creation"))
                         .append(" ").reset().color(ChatColor.GRAY).underlined(false)
-                        .append("for information.").color(ChatColor.GRAY)
+                        .append("for information.").retain(ComponentBuilder.FormatRetention.NONE).color(ChatColor.GRAY)
                         .color(ChatColor.GRAY).append(System.lineSeparator())
                         .append("Built on the ").color(ChatColor.GRAY).italic(true)
                         .append("Mask").color(ChatColor.GOLD).italic(true)

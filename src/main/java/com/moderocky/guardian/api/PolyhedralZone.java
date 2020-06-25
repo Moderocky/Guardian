@@ -11,7 +11,6 @@ import com.moderocky.guardian.util.ParticleUtils;
 import com.moderocky.mask.api.MagicList;
 import org.bukkit.*;
 import org.bukkit.block.Block;
-import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.bukkit.util.BoundingBox;
 import org.jetbrains.annotations.NotNull;
@@ -195,8 +194,7 @@ public class PolyhedralZone extends Zone {
         if (object.has("owner") && object.get("owner").isJsonPrimitive()) {
             String string = object.get("owner").getAsString();
             setOwner(UUID.fromString(string));
-        }
-        else setOwner(null);
+        } else setOwner(null);
         name = object.get("name") != null && !object.get("name").isJsonNull() ? object.get("name").getAsString() : null;
         if (!object.has("description") || object.get("description").isJsonNull()) description = null;
     }

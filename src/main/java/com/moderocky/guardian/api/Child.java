@@ -1,7 +1,6 @@
 package com.moderocky.guardian.api;
 
 import com.google.gson.JsonObject;
-import org.bukkit.configuration.ConfigurationSection;
 import org.jetbrains.annotations.NotNull;
 
 @SuppressWarnings("unused")
