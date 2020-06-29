@@ -6,7 +6,7 @@
 
     <groupId>com.moderocky</groupId>
     <artifactId>Guardian</artifactId>
-    <version>1.2.1</version>
+    <version>1.2.4</version>
     <packaging>jar</packaging>
     <name>${project.artifactId}</name>
 
@@ -145,6 +145,13 @@
             <artifactId>bungeecord-chat</artifactId>
             <version>1.16-R0.2-SNAPSHOT</version>
             <type>jar</type>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>net.md-5</groupId>
+            <artifactId>bungeecord-chat</artifactId>
+            <version>1.16-R0.2-SNAPSHOT</version>
+            <type>javadoc</type>
             <scope>provided</scope>
         </dependency>
         <dependency>

@@ -7,7 +7,9 @@ import com.moderocky.guardian.command.WandCommand;
 import com.moderocky.guardian.command.ZoneCommand;
 import com.moderocky.guardian.config.GuardianConfig;
 import com.moderocky.guardian.listener.*;
+import com.moderocky.guardian.util.LegacyMessenger;
 import com.moderocky.guardian.util.Messenger;
+import com.moderocky.guardian.util.RGBMessenger;
 import com.moderocky.mask.template.BukkitPlugin;
 import org.bstats.bukkit.Metrics;
 import org.bukkit.Bukkit;
@@ -42,7 +44,11 @@ public class Guardian extends BukkitPlugin {
     @Override
     public void startup() {
         instance = this;
-        messenger = new Messenger(this);
+        try { // Check for 1.16+ RGB Support
+            messenger = new RGBMessenger(this);
+        } catch (Throwable throwable) { // Default to legacy system
+            messenger = new LegacyMessenger(this);
+        }
         api = new GuardianAPI();
         api.init();
 

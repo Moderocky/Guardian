@@ -1,33 +1,13 @@
 package com.moderocky.guardian.util;
 
-import com.moderocky.guardian.Guardian;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.ComponentBuilder;
 import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.command.CommandSender;
-import org.jetbrains.annotations.NotNull;
 
-public class Messenger {
-
-    private @NotNull
-    final BaseComponent[] prefix = new ComponentBuilder("")
-            .color(ChatColor.WHITE)
-            .append("‹")
-            .color(ChatColor.DARK_GRAY)
-            .append("Guardian")
-            .color(ChatColor.DARK_AQUA)
-            .append("›")
-            .color(ChatColor.DARK_GRAY)
-            .append(" ")
-            .color(ChatColor.WHITE)
-            .create();
-
-    public Messenger(@NotNull Guardian guardian) {
-
-    }
-
-    public void sendMessage(String text, CommandSender... players) {
+public interface Messenger {
+    default void sendMessage(String text, CommandSender... players) {
         BaseComponent[] components = new ComponentBuilder("")
                 .append(getPrefix())
                 .append(TextComponent.fromLegacyText(text))
@@ -37,7 +17,7 @@ public class Messenger {
         }
     }
 
-    public void sendMessage(BaseComponent[] text, CommandSender... players) {
+    default void sendMessage(BaseComponent[] text, CommandSender... players) {
         BaseComponent[] components = new ComponentBuilder("")
                 .append(getPrefix())
                 .append(text)
@@ -47,7 +27,7 @@ public class Messenger {
         }
     }
 
-    public BaseComponent[] getBullets(String... texts) {
+    default BaseComponent[] getBullets(String... texts) {
         ComponentBuilder builder = new ComponentBuilder("").reset();
         boolean first = true;
         for (String text : texts) {
@@ -64,7 +44,7 @@ public class Messenger {
         return builder.append("").reset().create();
     }
 
-    public BaseComponent[] getBullets(BaseComponent[]... texts) {
+    default BaseComponent[] getBullets(BaseComponent[]... texts) {
         ComponentBuilder builder = new ComponentBuilder("").reset();
         boolean first = true;
         for (BaseComponent[] text : texts) {
@@ -81,8 +61,5 @@ public class Messenger {
         return builder.append("").reset().create();
     }
 
-    public BaseComponent[] getPrefix() {
-        return prefix;
-    }
-
+    BaseComponent[] getPrefix();
 }
