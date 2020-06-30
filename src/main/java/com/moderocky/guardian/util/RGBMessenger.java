@@ -14,7 +14,7 @@ public class RGBMessenger implements Messenger {
 
     public RGBMessenger(@NotNull Guardian guardian) {
         prefix = new ComponentBuilder("")
-                .color(ChatColor.WHITE)
+                .color(Messenger.color("d9f7ff", 'f'))
                 .append("‹")
                 .color(ChatColor.of("#f28900"))
                 .append("Guardian")
@@ -22,7 +22,7 @@ public class RGBMessenger implements Messenger {
                 .append("›")
                 .color(ChatColor.of("#f28900"))
                 .append(" ")
-                .color(ChatColor.WHITE)
+                .color(Messenger.color("d9f7ff", 'f'))
                 .create();
     }
 

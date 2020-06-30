@@ -7,6 +7,7 @@ import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.command.CommandSender;
 
 public interface Messenger {
+
     default void sendMessage(String text, CommandSender... players) {
         BaseComponent[] components = new ComponentBuilder("")
                 .append(getPrefix())
@@ -59,6 +60,22 @@ public interface Messenger {
             first = false;
         }
         return builder.append("").reset().create();
+    }
+
+    default ChatColor color(ChatColor color, ChatColor def) {
+        try {
+            return color;
+        } catch (Throwable throwable) {
+            return def;
+        }
+    }
+
+    static ChatColor color(String hex, char def) {
+        try {
+            return ChatColor.of(hex.startsWith("#") ? hex : "#" + hex);
+        } catch (Throwable throwable) {
+            return ChatColor.getByChar(def);
+        }
     }
 
     BaseComponent[] getPrefix();

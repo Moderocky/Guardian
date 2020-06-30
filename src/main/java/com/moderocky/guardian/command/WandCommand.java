@@ -15,7 +15,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.function.Consumer;
 
 public class WandCommand extends Commander<Player> implements WrappedCommand {
 
@@ -48,13 +47,13 @@ public class WandCommand extends Commander<Player> implements WrappedCommand {
     }
 
     @Override
-    public @NotNull Main create() {
+    public @NotNull CommandImpl create() {
         return command("wand");
 
     }
 
     @Override
-    public @NotNull Consumer<Player> getDefault() {
+    public @NotNull CommandSingleAction<Player> getDefault() {
         return player -> {
             PlayerInventory inventory = player.getInventory();
             if (inventory.getItemInMainHand().getType() == Material.AIR)

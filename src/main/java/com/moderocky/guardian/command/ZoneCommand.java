@@ -23,6 +23,7 @@ import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.*;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
+import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -46,12 +47,13 @@ public class ZoneCommand extends Commander<CommandSender> implements WrappedComm
     }
 
     @Override
-    @SuppressWarnings("unchecked")
-    public @NotNull Main create() {
+    public @NotNull CommandImpl create() {
         return command("zone")
                 .arg("add",
+                        desc("Allow a player to access a zone."),
                         sender -> messenger.sendMessage("/zone add <zone_id> <player/uuid>", sender),
                         arg(
+                                desc("Allow a player to access a zone."),
                                 (sender, input) -> {
                                     String id = (String) input[0];
                                     Zone zone = api.getZone(id);
@@ -77,8 +79,10 @@ public class ZoneCommand extends Commander<CommandSender> implements WrappedComm
                         )
                 )
                 .arg("create",
+                        desc("Create a new zone.\nUse the wand to select corners."),
                         sender -> messenger.sendMessage("/zone create <zone_id>", sender),
                         arg(
+                                desc("Create a new zone.\nUse the wand to select corners."),
                                 (sender, input) -> {
                                     if (!(sender instanceof Player)) return;
                                     Player player = (Player) sender;
@@ -112,8 +116,10 @@ public class ZoneCommand extends Commander<CommandSender> implements WrappedComm
                         )
                 )
                 .arg("createpoly",
+                        desc("Create a polyhedral zone.\nUse the poly-wand to select points."),
                         sender -> messenger.sendMessage("/zone createpoly <zone_id>", sender),
                         arg(
+                                desc("Create a polyhedral zone.\nUse the poly-wand to select points."),
                                 (sender, input) -> {
                                     if (!(sender instanceof Player)) return;
                                     Player player = (Player) sender;
@@ -148,8 +154,10 @@ public class ZoneCommand extends Commander<CommandSender> implements WrappedComm
                         )
                 )
                 .arg("delete",
+                        desc("Delete a zone."),
                         sender -> messenger.sendMessage("/zone delete <zone_id>", sender),
                         arg(
+                                desc("Delete a zone."),
                                 (sender, input) -> {
                                     String id = input[0].toString();
                                     Zone zone = api.getZone(id);
@@ -223,22 +231,23 @@ public class ZoneCommand extends Commander<CommandSender> implements WrappedComm
                                             .append("Allowed Players:")
                                             .color(ChatColor.WHITE)
                                             .append(System.lineSeparator())
-                                            .append(String.join(", ", players))
-                                            .color(ChatColor.GRAY)
+                                            .append(players.isEmpty() ? "(None)" : String.join(", ", players))
+                                            .color(Messenger.color("#29ffdb", '7'))
                                             .append(System.lineSeparator())
                                             .reset()
                                             .append(System.lineSeparator())
                                             .append("Active Flags:")
                                             .color(ChatColor.WHITE)
                                             .append(System.lineSeparator())
-                                            .append(String.join(", ", flags))
-                                            .color(ChatColor.GRAY)
+                                            .append(flags.isEmpty() ? "(None)" : String.join(", ", flags))
+                                            .color(Messenger.color("#29ffdb", '7'))
                                             .create(), sender);
                                 },
                                 new ArgZone().setRequired(false)
                         )
                 )
                 .arg("list",
+                        desc("List all zones, or all zones that a specific player can access."),
                         sender -> {
                             if (api.getZoneKeys().isEmpty()) {
                                 messenger.sendMessage("No zones have been defined.", sender);
@@ -249,15 +258,16 @@ public class ZoneCommand extends Commander<CommandSender> implements WrappedComm
                                             .append(System.lineSeparator())
                                             .reset()
                                             .append(" - ")
-                                            .color(ChatColor.DARK_GRAY)
+                                            .color(Messenger.color("#f28900", '8'))
                                             .append(convertCase(key.getKey()))
-                                            .color(ChatColor.GRAY)
+                                            .color(Messenger.color("#29ffdb", '7'))
                                             .event(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/zone info " + key.toString()));
                                 }
                                 messenger.sendMessage(builder.create(), sender);
                             }
                         },
                         arg(
+                                desc("List all zones, or all zones that a specific player can access."),
                                 (sender, input) -> {
                                     List<Zone> zones = api.getZones();
                                     zones.removeIf(zone -> !zone.canEdit(((OfflinePlayer) input[0]).getUniqueId()));
@@ -274,9 +284,9 @@ public class ZoneCommand extends Commander<CommandSender> implements WrappedComm
                                                     .append(System.lineSeparator())
                                                     .reset()
                                                     .append(" - ")
-                                                    .color(ChatColor.DARK_GRAY)
+                                                    .color(Messenger.color("#f28900", '8'))
                                                     .append(convertCase(key.getKey()))
-                                                    .color(ChatColor.GRAY)
+                                                    .color(Messenger.color("#29ffdb", '7'))
                                                     .event(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/zone info " + key.toString()));
                                         }
                                         messenger.sendMessage(builder.create(), sender);
@@ -286,8 +296,10 @@ public class ZoneCommand extends Commander<CommandSender> implements WrappedComm
                         )
                 )
                 .arg("remove",
+                        desc("Revoke a player's access to a zone."),
                         sender -> messenger.sendMessage("/zone remove <zone_id> <player/uuid>", sender),
                         arg(
+                                desc("Revoke a player's access to a zone."),
                                 (sender, input) -> {
                                     String id = (String) input[0];
                                     Zone zone = api.getZone(id);
@@ -313,6 +325,7 @@ public class ZoneCommand extends Commander<CommandSender> implements WrappedComm
                         )
                 )
                 .arg("show",
+                        desc("Display the spatial bounds of a zone."),
                         sender -> {
                             if (!(sender instanceof Player)) return;
                             List<Zone> zones = api.getZones(((Player) sender).getLocation().getBlock().getLocation());
@@ -328,6 +341,7 @@ public class ZoneCommand extends Commander<CommandSender> implements WrappedComm
                             });
                         },
                         arg(
+                                desc("Display the spatial bounds of a zone."),
                                 (sender, input) -> {
                                     String id = input[0].toString();
                                     Zone zone = api.getZone(id);
@@ -344,8 +358,8 @@ public class ZoneCommand extends Commander<CommandSender> implements WrappedComm
                         )
                 )
                 .arg("teleport",
-                        sender -> messenger.sendMessage("You do not have permission for this action.", sender),
                         arg(
+                                desc("Teleport to a zone."),
                                 (sender, input) -> {
                                     if (!(sender instanceof Player)) return;
                                     if (!sender.hasPermission("guardian.command.teleport")) {
@@ -366,8 +380,10 @@ public class ZoneCommand extends Commander<CommandSender> implements WrappedComm
                         )
                 )
                 .arg("toggle",
+                        desc("Enable/disable certain actions within a zone.\nView all flags? /guardian flags"),
                         sender -> messenger.sendMessage("/zone toggle <zone_id> <flag>", sender),
                         arg(
+                                desc("Enable/disable certain actions within a zone.\nView all flags? /guardian flags"),
                                 (sender, input) -> {
                                     String id = input[0].toString();
                                     String flag = input[1].toString();
@@ -407,7 +423,7 @@ public class ZoneCommand extends Commander<CommandSender> implements WrappedComm
     }
 
     @Override
-    public @NotNull Consumer<CommandSender> getDefault() {
+    public @NotNull CommandSingleAction<CommandSender> getDefault() {
         return sender -> messenger.sendMessage(api.getCommandHelpMessage(this), sender);
     }
 
@@ -462,4 +478,5 @@ public class ZoneCommand extends Commander<CommandSender> implements WrappedComm
     public @Nullable List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String alias, @NotNull String[] args) {
         return api.getTabCompletions(this, args);
     }
+
 }

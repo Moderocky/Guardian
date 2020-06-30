@@ -48,12 +48,12 @@ public class PolywandCommand extends Commander<Player> implements WrappedCommand
     }
 
     @Override
-    public @NotNull Main create() {
+    public @NotNull CommandImpl create() {
         return command("polywand");
     }
 
     @Override
-    public @NotNull Consumer<Player> getDefault() {
+    public @NotNull CommandSingleAction<Player> getDefault() {
         return player -> {
             PlayerInventory inventory = player.getInventory();
             if (inventory.getItemInMainHand().getType() == Material.AIR)

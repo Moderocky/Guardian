@@ -6,9 +6,11 @@ import com.google.gson.JsonParser;
 import com.moderocky.guardian.Guardian;
 import com.moderocky.guardian.config.GuardianConfig;
 import com.moderocky.guardian.listener.BlanketUncaughtListener;
+import com.moderocky.guardian.util.Messenger;
 import com.moderocky.guardian.util.ParticleUtils;
 import com.moderocky.mask.annotation.DoNotInstantiate;
 import com.moderocky.mask.annotation.Internal;
+import com.moderocky.mask.api.MagicList;
 import com.moderocky.mask.command.Commander;
 import com.moderocky.mask.internal.utility.FileManager;
 import com.moderocky.mask.mirror.Mirror;
@@ -35,6 +37,9 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 import java.lang.reflect.Method;
 import java.util.*;
+import java.util.function.Function;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @SuppressWarnings("unused")
 public class GuardianAPI {
@@ -349,23 +354,75 @@ public class GuardianAPI {
 
     public BaseComponent[] getCommandHelpMessage(Commander<?> commander) {
         ComponentBuilder builder = new ComponentBuilder("Command Help:");
-        for (String pattern : commander.getPatterns()) {
+        for (Map.Entry<String, String> entry : commander.getPatternDescriptions().entrySet()) {
+            String pattern = entry.getKey();
+            BaseComponent[] formatted = getFormattedPattern(pattern);
+            String desc = entry.getValue();
+            boolean has = desc != null;
+            HoverEvent event;
+            if (desc != null) {
+                event = new HoverEvent(HoverEvent.Action.SHOW_TEXT, TextComponent.fromLegacyText(desc));
+            } else {
+                event = new HoverEvent(HoverEvent.Action.SHOW_TEXT, TextComponent.fromLegacyText((pattern.contains("[") || pattern.contains("<")) ? "Click to suggest." : "Click to run.", ChatColor.AQUA));
+            }
             builder
-                    .append(System.lineSeparator())
-                    .reset()
-                    .append(" - /" + commander.getCommand())
-                    .color(net.md_5.bungee.api.ChatColor.DARK_GRAY)
-                    .append(" ")
-                    .append(pattern)
+                    .append("\n").retain(ComponentBuilder.FormatRetention.FORMATTING)
+                    .append(" - ").color(Messenger.color("#f28900", '8'))
                     .event(new ClickEvent((pattern.contains("[") || pattern.contains("<")) ? ClickEvent.Action.SUGGEST_COMMAND : ClickEvent.Action.RUN_COMMAND, "/" + commander.getCommand() + " " + pattern.replaceFirst("(<.*|\\[.*)", "")))
-                    .event(new HoverEvent(HoverEvent.Action.SHOW_TEXT, TextComponent.fromLegacyText((pattern.contains("[") || pattern.contains("<")) ? "Click to suggest." : "Click to run.", net.md_5.bungee.api.ChatColor.AQUA)))
-                    .color(ChatColor.GRAY);
+                    .event(event)
+                    .append("/" + commander.getCommand())
+                    .color(Messenger.color("#086796", '8'))
+                    .append(" ")
+                    .append(formatted);
         }
         return builder.create();
     }
 
+    private BaseComponent[] getFormattedPattern(String pattern) {
+        ChatColor color = Messenger.color("#29ffdb", '7');
+        ChatColor star = Messenger.color("#f28900", '6');
+        ChatColor angular = Messenger.color("#d9dbdb", 'f');
+        ChatColor box = Messenger.color("#6d7070", '8');
+        if (pattern.contains("[") || pattern.contains("<")) {
+            return TextComponent.fromLegacyText(pattern
+                    .replace("\\*", star + "*" + color)
+                    .replaceAll("<", angular + "<" + color)
+                    .replaceAll(">", angular + ">" + color)
+                    .replaceAll("\\[", box + "[" + color)
+                    .replaceAll("]", box + "]" + color), color);
+        } else {
+            return TextComponent.fromLegacyText(pattern, color);
+        }
+    }
+
+    private MagicList<String> getArgPatterns(Commander<?> commander) {
+        Pattern pattern = Pattern.compile("^[^\\[<\\n]+((?> [<\\[]\\S+[\\]>])+)$");
+        MagicList<String> list = new MagicList<>(commander.getPossibleArguments());
+        MagicList<String> catcher = new MagicList<>(list);
+        catcher.removeIf(s -> !s.contains("<") && !s.contains("["));
+        catcher.removeIf(s -> !s.matches("^[^\\[<\\n]+((?> [<\\[]\\S+[\\]>])+)$"));
+        for (String string : new ArrayList<>(catcher)) {
+            Matcher matcher = pattern.matcher(string);
+            if (!matcher.find()) continue;
+            String group = matcher.group(1).trim();
+            String test = string.replace(group, "").trim();
+            boolean matches = false;
+            for (String str : new ArrayList<>(list)) {
+                if (str.trim().equalsIgnoreCase(test)) {
+                    matches = true;
+                    list.remove(str);
+                }
+            }
+            if (matches) {
+                list.remove(string);
+                list.add(group.contains("<") ? (test + " [" + group + "]") : (test + " " + group));
+            }
+        }
+        return list;
+    }
+
     public List<String> getTabCompletions(Commander<?> commander, String[] args) {
-        List<String> strings = commander.getTabCompletions(String.join(" ", args));
+        List<String> strings = commander.getTabCompletions(args);
         if (strings == null || strings.isEmpty()) return null;
         final List<String> completions = new ArrayList<>();
         StringUtil.copyPartialMatches(args[args.length - 1], strings, completions);

@@ -16,7 +16,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.function.Consumer;
 import java.util.function.Function;
 
 public class GuardianCommand extends Commander<CommandSender> implements WrappedCommand {
@@ -57,7 +56,7 @@ public class GuardianCommand extends Commander<CommandSender> implements Wrapped
     }
 
     @Override
-    public @NotNull Main create() {
+    public @NotNull CommandImpl create() {
         return command("guardian")
                 .arg("flags", sender -> {
                     ComponentBuilder builder = new ComponentBuilder("List of Flags:").color(ChatColor.WHITE);
@@ -70,7 +69,8 @@ public class GuardianCommand extends Commander<CommandSender> implements Wrapped
                         .append("Guardian").color(ChatColor.AQUA)
                         .event(new HoverEvent(HoverEvent.Action.SHOW_TEXT, TextComponent.fromLegacyText("Visit the website?")))
                         .event(new ClickEvent(ClickEvent.Action.OPEN_URL, "https://gitlab.com/Moderocky/Guardian"))
-                        .append(" v" + Guardian.getInstance().getVersion())
+                        .append(" v")
+                        .append(Guardian.getInstance().getVersion())
                         .append(" by ")
                         .append("@Moderocky")
                         .color(ChatColor.AQUA)
@@ -126,7 +126,7 @@ public class GuardianCommand extends Commander<CommandSender> implements Wrapped
     }
 
     @Override
-    public @NotNull Consumer<CommandSender> getDefault() {
+    public @NotNull CommandSingleAction<CommandSender> getDefault() {
         return sender -> messenger.sendMessage(api.getCommandHelpMessage(this), sender);
     }
 
