@@ -190,7 +190,7 @@ public class GuardianAPI {
     }
 
     public void setWandPosition(Player player, int i, Location location, BlockFace face) {
-        Location particle = location.add(0.5, 0.5, 0.5).add(face.getDirection().normalize().multiply(0.5));
+        Location particle = location.getBlock().getLocation().add(0.5, 0.5, 0.5).add(face.getDirection().normalize().multiply(0.5));
         if (i == 1) {
             player.getPersistentDataContainer().set(Guardian.getNamespacedKey("wand_pos_1"), PersistentDataType.STRING, serialisePosition(location.getBlock().getLocation()));
             location.getWorld().spawnParticle(Particle.BLOCK_DUST, particle, 12, Material.REDSTONE_BLOCK.createBlockData());
