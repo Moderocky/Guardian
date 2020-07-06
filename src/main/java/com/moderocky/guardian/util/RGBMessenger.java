@@ -6,11 +6,10 @@ import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.ComponentBuilder;
 import org.jetbrains.annotations.NotNull;
 
-import java.awt.*;
-
 public class RGBMessenger implements Messenger {
 
-    private @NotNull final BaseComponent[] prefix;
+    private @NotNull
+    final BaseComponent[] prefix;
 
     public RGBMessenger(@NotNull Guardian guardian) {
         prefix = new ComponentBuilder("")

@@ -15,7 +15,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.function.Consumer;
 
 public class PolywandCommand extends Commander<Player> implements WrappedCommand {
 

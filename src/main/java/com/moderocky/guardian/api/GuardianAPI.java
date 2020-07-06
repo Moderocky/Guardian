@@ -37,7 +37,6 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 import java.lang.reflect.Method;
 import java.util.*;
-import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -187,6 +186,19 @@ public class GuardianAPI {
         } catch (Throwable throwable) {
             return null;
         }
+    }
+
+    public void setWandPosition(Player player, int i, Location location) {
+        if (i == 1) {
+            player.getPersistentDataContainer().set(Guardian.getNamespacedKey("wand_pos_1"), PersistentDataType.STRING, serialisePosition(location.getBlock().getLocation()));
+            location.getWorld().spawnParticle(Particle.BLOCK_DUST, location, 12, Material.REDSTONE_BLOCK.createBlockData());
+            player.spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent.fromLegacyText(config.setPosition.replace("%s", "1")));
+        } else if (i == 2) {
+            player.getPersistentDataContainer().set(Guardian.getNamespacedKey("wand_pos_2"), PersistentDataType.STRING, serialisePosition(location.getBlock().getLocation()));
+            location.getWorld().spawnParticle(Particle.BLOCK_DUST, location, 12, Material.LAPIS_BLOCK.createBlockData());
+            player.spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent.fromLegacyText(config.setPosition.replace("%s", "2")));
+        }
+        displayBox(player);
     }
 
     public List<Location> getPolywandPositions(Player player) {
@@ -570,6 +582,7 @@ public class GuardianAPI {
                 NamespacedKey namespacedKey = new NamespacedKey(namespace, key);
                 Mirror<Class<Zone>> mirror = Mirror.<Zone>mirror(object.get("class_loader").getAsString());
                 final Zone zone = mirror.<Zone>constructor(NamespacedKey.class, JsonObject.class).newInstance(namespacedKey, object);
+                zone.load(object);
                 zoneMap.put(namespacedKey, zone);
                 addCache(zone);
             } catch (Throwable throwable) {

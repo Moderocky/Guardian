@@ -32,7 +32,6 @@ public abstract class Zone implements Nameable, Describable {
 
     public Zone(@NotNull NamespacedKey id, @NotNull JsonObject object) {
         this.key = id;
-        load(object);
     }
 
     public List<UUID> getAllowedPlayers() {

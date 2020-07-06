@@ -168,11 +168,11 @@ public class PolyhedralZone extends Zone {
         polyhedron.getLocations(world).forEach(location -> strings.add(api.serialisePosition(location)));
         object.add("vertices", strings.toJsonStringArray());
         object.add("flags", new MagicList<>(getFlags()).toJsonStringArray());
-        MagicList<String> players = new MagicList<>(getAllowedPlayers()).collect((Function<UUID, String>) UUID::toString);
+        MagicList<String> players = new MagicList<>(getAllowedPlayers()).collect(UUID::toString);
         object.add("players", players.toJsonStringArray());
         object.addProperty("owner", getOwner() != null ? getOwner().toString() : null);
         object.addProperty("name", name);
-        object.add("desc", description == null ? null : new MagicList<>(description.split("\n")).toJsonStringArray());
+        object.addProperty("description", description);
     }
 
     @Override
@@ -181,8 +181,8 @@ public class PolyhedralZone extends Zone {
         this.location = api.deserialisePosition(object.get("location").getAsString());
         MagicList<Vertex> vertices = MagicList
                 .from(object.getAsJsonArray("vertices"), JsonElement::getAsString)
-                .collect((Function<String, Location>) string -> api.deserialisePosition(string))
-                .collect((Function<Location, Vertex>) Vertex::from);
+                .collect(string -> api.deserialisePosition(string))
+                .collect(Vertex::from);
         polyhedron = new Polyhedron(vertices);
         this.boundingBox = polyhedron.getBoundingBox();
         for (String string : MagicList.from(object.getAsJsonArray("flags"), JsonElement::getAsString)) {
@@ -197,6 +197,7 @@ public class PolyhedralZone extends Zone {
         } else setOwner(null);
         name = object.get("name") != null && !object.get("name").isJsonNull() ? object.get("name").getAsString() : null;
         if (!object.has("description") || object.get("description").isJsonNull()) description = null;
+        else description = object.get("description").getAsString();
     }
 
     @Override

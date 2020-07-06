@@ -3,12 +3,12 @@ package com.moderocky.guardian.listener;
 import com.moderocky.guardian.Guardian;
 import com.moderocky.guardian.api.GuardianAPI;
 import com.moderocky.guardian.api.Zone;
-import com.moderocky.mask.template.CompleteListener;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
+import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.jetbrains.annotations.NotNull;
 
@@ -16,7 +16,7 @@ import org.jetbrains.annotations.NotNull;
  * @author Moderocky
  * @version 1.0.0
  */
-public class BlockBreakListener implements CompleteListener {
+public class BlockBreakListener implements Listener {
 
     private final @NotNull GuardianAPI api = Guardian.getApi();
 

@@ -10,20 +10,14 @@ import com.moderocky.guardian.command.argument.ArgFlag;
 import com.moderocky.guardian.command.argument.ArgZone;
 import com.moderocky.guardian.config.GuardianConfig;
 import com.moderocky.guardian.util.Messenger;
-import com.moderocky.mask.command.ArgOfflinePlayer;
-import com.moderocky.mask.command.ArgPlayer;
-import com.moderocky.mask.command.ArgString;
-import com.moderocky.mask.command.Commander;
+import com.moderocky.mask.api.MagicList;
+import com.moderocky.mask.command.*;
 import com.moderocky.mask.template.WrappedCommand;
 import net.md_5.bungee.api.ChatColor;
-import net.md_5.bungee.api.chat.BaseComponent;
-import net.md_5.bungee.api.chat.ClickEvent;
-import net.md_5.bungee.api.chat.ComponentBuilder;
-import net.md_5.bungee.api.chat.TextComponent;
+import net.md_5.bungee.api.chat.*;
 import org.bukkit.*;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
-import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -32,7 +26,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
-import java.util.function.Consumer;
 
 public class ZoneCommand extends Commander<CommandSender> implements WrappedCommand {
 
@@ -165,6 +158,10 @@ public class ZoneCommand extends Commander<CommandSender> implements WrappedComm
                                         messenger.sendMessage("No zone with the id '" + id + "' can be found.", sender);
                                         return;
                                     }
+                                    if (!zone.canEdit(sender instanceof Player ? ((Player) sender).getUniqueId() : UUID.randomUUID())) {
+                                        messenger.sendMessage("You may not edit this zone.", sender);
+                                        return;
+                                    }
                                     api.removeZone(zone);
                                     api.scheduleSave();
                                     api.updateCache();
@@ -172,6 +169,26 @@ public class ZoneCommand extends Commander<CommandSender> implements WrappedComm
                                 },
                                 new ArgZone()
                         )
+                )
+                .arg(new String[]{"desc", "description"}, arg(desc("Set the description of a zone."),
+                        (sender, input) -> {
+                            String id = input[0].toString();
+                            Zone zone = api.getZone(id);
+                            if (zone == null) {
+                                messenger.sendMessage("No zone with the id '" + id + "' can be found.", sender);
+                                return;
+                            }
+                            if (!zone.canEdit(sender instanceof Player ? ((Player) sender).getUniqueId() : UUID.randomUUID())) {
+                                messenger.sendMessage("You may not edit this zone.", sender);
+                                return;
+                            }
+                            zone.setDescription(input[1] != null ? input[1].toString() : null);
+                            api.scheduleSave();
+                            api.updateCache();
+                            messenger.sendMessage("This zone's description was updated.", sender);
+                        },
+                        new ArgZone(),
+                        new ArgStringFinal().setRequired(false).setLabel("text"))
                 )
                 .arg("info",
                         sender -> {
@@ -184,7 +201,12 @@ public class ZoneCommand extends Commander<CommandSender> implements WrappedComm
                                 zones.forEach(zone -> names.add(zone.getKey().toString()));
                                 messenger.sendMessage(new ComponentBuilder("Zones at your location:")
                                         .append(System.lineSeparator())
-                                        .append(messenger.getBullets(names.toArray(new String[0])))
+                                        .append(messenger.getBullets(new MagicList<>(names)
+                                                .collect(string -> new ComponentBuilder(string)
+                                                        .event(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/zone info " + string))
+                                                        .event(new HoverEvent(HoverEvent.Action.SHOW_TEXT, TextComponent.fromLegacyText("Click to view.")))
+                                                        .create()).toArray(new BaseComponent[0][0])
+                                        ))
                                         .create(), sender);
                             }
                         },
@@ -223,7 +245,7 @@ public class ZoneCommand extends Commander<CommandSender> implements WrappedComm
                                     messenger.sendMessage(new ComponentBuilder("Zone Info: ")
                                             .color(ChatColor.GRAY)
                                             .append(zone.getName())
-                                            .color(ChatColor.LIGHT_PURPLE)
+                                            .color(ChatColor.RESET)
                                             .append(desc)
                                             .append(System.lineSeparator())
                                             .reset()

@@ -60,7 +60,7 @@ public class GuardianCommand extends Commander<CommandSender> implements Wrapped
         return command("guardian")
                 .arg("flags", sender -> {
                     ComponentBuilder builder = new ComponentBuilder("List of Flags:").color(ChatColor.WHITE);
-                    for (BaseComponent[] flag : new MagicList<>(api.getProtectionFlags()).collect((Function<String, BaseComponent[]>) string -> TextComponent.fromLegacyText(string, ChatColor.GRAY))) {
+                    for (BaseComponent[] flag : new MagicList<>(api.getProtectionFlags()).collect(string -> TextComponent.fromLegacyText(string, ChatColor.GRAY))) {
                         builder.append(System.lineSeparator()).append(flag);
                     }
                     messenger.sendMessage(builder.create());

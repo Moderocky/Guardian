@@ -160,11 +160,7 @@ public class CuboidalZone extends Zone implements Parent<CuboidalChild> {
         object.add("players", players);
         object.addProperty("owner", getOwner() != null ? getOwner().toString() : null);
         object.addProperty("name", name);
-        JsonArray desc = new JsonArray();
-        if (description != null) for (String s : description.split("\n")) {
-            desc.add(s);
-        }
-        object.add("description", description == null ? null : desc);
+        object.addProperty("description", description);
         saveChildren(object);
     }
 
@@ -188,10 +184,7 @@ public class CuboidalZone extends Zone implements Parent<CuboidalChild> {
         } else setOwner(null);
         name = object.get("name") != null && !object.get("name").isJsonNull() ? object.get("name").getAsString() : null;
         if (!object.has("description") || object.get("description").isJsonNull()) description = null;
-        else {
-            List<String> desc = MagicList.from(object.getAsJsonArray("description"), JsonElement::getAsString);
-            description = String.join(System.lineSeparator(), desc);
-        }
+        else description = object.get("description").getAsString();
         loadChildren(object);
     }
 

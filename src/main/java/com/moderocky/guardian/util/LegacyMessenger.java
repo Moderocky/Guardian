@@ -8,7 +8,8 @@ import org.jetbrains.annotations.NotNull;
 
 public class LegacyMessenger implements Messenger {
 
-    private @NotNull final BaseComponent[] prefix;
+    private @NotNull
+    final BaseComponent[] prefix;
 
     public LegacyMessenger(@NotNull Guardian guardian) {
         prefix = new ComponentBuilder("")
