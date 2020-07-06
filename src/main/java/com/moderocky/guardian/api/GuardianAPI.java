@@ -19,6 +19,7 @@ import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.*;
 import org.bukkit.*;
 import org.bukkit.block.Block;
+import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
@@ -188,14 +189,15 @@ public class GuardianAPI {
         }
     }
 
-    public void setWandPosition(Player player, int i, Location location) {
+    public void setWandPosition(Player player, int i, Location location, BlockFace face) {
+        Location particle = location.add(0.5, 0.5, 0.5).add(face.getDirection().normalize().multiply(0.5));
         if (i == 1) {
             player.getPersistentDataContainer().set(Guardian.getNamespacedKey("wand_pos_1"), PersistentDataType.STRING, serialisePosition(location.getBlock().getLocation()));
-            location.getWorld().spawnParticle(Particle.BLOCK_DUST, location, 12, Material.REDSTONE_BLOCK.createBlockData());
+            location.getWorld().spawnParticle(Particle.BLOCK_DUST, particle, 12, Material.REDSTONE_BLOCK.createBlockData());
             player.spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent.fromLegacyText(config.setPosition.replace("%s", "1")));
         } else if (i == 2) {
             player.getPersistentDataContainer().set(Guardian.getNamespacedKey("wand_pos_2"), PersistentDataType.STRING, serialisePosition(location.getBlock().getLocation()));
-            location.getWorld().spawnParticle(Particle.BLOCK_DUST, location, 12, Material.LAPIS_BLOCK.createBlockData());
+            location.getWorld().spawnParticle(Particle.BLOCK_DUST, particle, 12, Material.LAPIS_BLOCK.createBlockData());
             player.spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent.fromLegacyText(config.setPosition.replace("%s", "2")));
         }
         displayBox(player);

@@ -8,6 +8,7 @@ import com.moderocky.mask.command.ArgInteger;
 import com.moderocky.mask.command.Commander;
 import com.moderocky.mask.template.WrappedCommand;
 import org.bukkit.Material;
+import org.bukkit.block.BlockFace;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -54,7 +55,7 @@ public class WandCommand extends Commander<Player> implements WrappedCommand {
                         (player, input) -> {
                             ItemStack item = player.getInventory().getItemInMainHand();
                             if (api.isWand(item)) {
-                                api.setWandPosition(player, (int) input[0], player.getLocation());
+                                api.setWandPosition(player, (int) input[0], player.getLocation(), BlockFace.UP);
                             }
                         }, new ArgInteger().setLabel("1/2"))
                 );

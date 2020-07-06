@@ -40,11 +40,10 @@ public class PlayerInteractListener implements Listener {
         ItemStack itemStack = event.getItem();
         if (api.isWand(itemStack)) {
             event.setCancelled(true);
-            Location location = block.getLocation().add(0.5, 0.5, 0.5).add(event.getBlockFace().getDirection().normalize().multiply(0.5));
             if (event.getAction() == Action.LEFT_CLICK_BLOCK) {
-                api.setWandPosition(player, 1, location);
+                api.setWandPosition(player, 1, block.getLocation(), event.getBlockFace());
             } else if (event.getAction() == Action.RIGHT_CLICK_BLOCK) {
-                api.setWandPosition(player, 2, location);
+                api.setWandPosition(player, 2, block.getLocation(), event.getBlockFace());
             }
         } else if (api.isPolywand(itemStack)) {
             event.setCancelled(true);
