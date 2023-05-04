@@ -101,6 +101,10 @@ public abstract class Zone {
         return convertCase(getKey().getKey());
     }
 
+    public abstract String getDescription();
+
+    public abstract void setDescription(String description);
+
     /**
      * @return The individual zone key, in the form "plugin:zone_id" to prevent conflicts.
      */
