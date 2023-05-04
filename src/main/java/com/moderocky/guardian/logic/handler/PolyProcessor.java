@@ -84,8 +84,8 @@ public class PolyProcessor {
 
     private void setHedralUnitError(Polyhedron polyhedron) {
         this.maxDist = ((Math.abs(this.x0) + Math.abs(this.x1) +
-                Math.abs(this.y0) + Math.abs(this.y1) +
-                Math.abs(this.z0) + Math.abs(this.z1)) / 6 * measurementError);
+            Math.abs(this.y0) + Math.abs(this.y1) +
+            Math.abs(this.z0) + Math.abs(this.z1)) / 6 * measurementError);
     }
 
     private void setHedralBoundary(Polyhedron polyhedron) {
@@ -194,8 +194,8 @@ public class PolyProcessor {
             for (int j = 0; j < count; j++) {
                 vi.add(faceVertexIndex.get(i).get(j));
                 gp.add(new Vertex(vertices.get(vi.get(j)).getX(),
-                        vertices.get(vi.get(j)).getY(),
-                        vertices.get(vi.get(j)).getZ()));
+                    vertices.get(vi.get(j)).getY(),
+                    vertices.get(vi.get(j)).getZ()));
             }
 
             polygons.add(new Polygon(gp, vi));

@@ -31,10 +31,10 @@ public class WorldDistrict {
     @Override
     public String toString() {
         return "WorldDistrict{" +
-                "x=" + x +
-                ", z=" + z +
-                ", world=" + world +
-                '}';
+            "x=" + x +
+            ", z=" + z +
+            ", world=" + world +
+            '}';
     }
 
     @Override

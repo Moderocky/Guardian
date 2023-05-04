@@ -2,8 +2,7 @@ package com.moderocky.guardian.api;
 
 import com.google.common.base.Ascii;
 import com.google.gson.JsonObject;
-import com.moderocky.mask.api.commons.Describable;
-import com.moderocky.mask.api.commons.Nameable;
+import mx.kenzie.argo.Json;
 import org.bukkit.Chunk;
 import org.bukkit.Location;
 import org.bukkit.NamespacedKey;
@@ -18,7 +17,7 @@ import java.util.List;
 import java.util.UUID;
 
 @SuppressWarnings("unused")
-public abstract class Zone implements Nameable, Describable {
+public abstract class Zone {
 
     private final @NotNull List<String> flags = new ArrayList<>();
     private final @NotNull List<UUID> players = new ArrayList<>();
@@ -86,7 +85,7 @@ public abstract class Zone implements Nameable, Describable {
      * Unless this is overridden it treats the zone as a circle around the location.
      *
      * @param zone The zone to check against
-     * @param <Z> Something extending Zone
+     * @param <Z>  Something extending Zone
      * @return boo
      */
     public <Z extends Zone> boolean overlaps(Z zone) {
@@ -98,7 +97,6 @@ public abstract class Zone implements Nameable, Describable {
         return new WorldDistrict(getLocation());
     }
 
-    @Override
     public String getName() {
         return convertCase(getKey().getKey());
     }
@@ -157,7 +155,7 @@ public abstract class Zone implements Nameable, Describable {
      * <p>
      * Feel free to override this if you have a more special check.
      *
-     * @param location The location
+     * @param location        The location
      * @param interactionType The interaction type
      * @return boo
      */
@@ -173,9 +171,9 @@ public abstract class Zone implements Nameable, Describable {
      * <p>
      * Feel free to override this if you have a more special check.
      *
-     * @param location The location
+     * @param location        The location
      * @param interactionType The interaction type
-     * @param player The interacting player
+     * @param player          The interacting player
      * @return boo
      */
     public boolean canInteract(@NotNull Location location, @NotNull String interactionType, @NotNull Player player) {
@@ -238,17 +236,17 @@ public abstract class Zone implements Nameable, Describable {
 
     public abstract @NotNull Location getLocation();
 
-    public abstract void save(final @NotNull JsonObject object);
+    public abstract void save(final Json object);
 
-    public abstract void load(final @NotNull JsonObject object);
+    public abstract void load(final Json object);
 
-    private String convertCase(String string) {
+    public static String convertCase(String string) {
         String[] words = string.split("_");
         List<String> list = new ArrayList<>();
         for (String word : words) {
             list.add((word.isEmpty())
-                    ? word
-                    : Ascii.toUpperCase(word.charAt(0)) + Ascii.toLowerCase(word.substring(1)));
+                ? word
+                : Ascii.toUpperCase(word.charAt(0)) + Ascii.toLowerCase(word.substring(1)));
         }
         return String.join(" ", list);
     }

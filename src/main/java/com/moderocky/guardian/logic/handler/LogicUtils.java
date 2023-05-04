@@ -16,8 +16,8 @@ public class LogicUtils {
 
     public static List<Block> getBlocks(BoundingBox boundingBox, World world) {
         Location[] bounds = new Location[]{
-                boundingBox.getMin().toLocation(world),
-                boundingBox.getMax().toLocation(world)
+            boundingBox.getMin().toLocation(world),
+            boundingBox.getMax().toLocation(world)
         };
         List<Block> blocks = new ArrayList<>();
         for (double y = bounds[0].getY(); y <= bounds[1].getY(); y++) {
