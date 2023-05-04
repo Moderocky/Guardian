@@ -1,504 +1,442 @@
 package com.moderocky.guardian.command;
 
-import com.google.common.base.Ascii;
 import com.moderocky.guardian.Guardian;
 import com.moderocky.guardian.api.CuboidalZone;
 import com.moderocky.guardian.api.GuardianAPI;
 import com.moderocky.guardian.api.PolyhedralZone;
 import com.moderocky.guardian.api.Zone;
-import com.moderocky.guardian.command.argument.ArgFlag;
-import com.moderocky.guardian.command.argument.ArgZone;
 import com.moderocky.guardian.config.GuardianConfig;
-import com.moderocky.guardian.util.Messenger;
-import com.moderocky.mask.api.MagicList;
-import com.moderocky.mask.command.*;
-import com.moderocky.mask.template.WrappedCommand;
-import net.md_5.bungee.api.ChatColor;
-import net.md_5.bungee.api.chat.*;
-import org.bukkit.*;
-import org.bukkit.command.Command;
+import mx.kenzie.centurion.*;
+import net.kyori.adventure.text.Component;
+import org.bukkit.Bukkit;
+import org.bukkit.Location;
+import org.bukkit.World;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
-public class ZoneCommand extends Commander<CommandSender> implements WrappedCommand {
+import static net.kyori.adventure.text.Component.text;
 
-    public static ZoneCommand command;
-    private final @NotNull GuardianConfig config = Guardian.getInstance().getGuardianConfig();
-    private final @NotNull Messenger messenger = Guardian.getMessenger();
-    private final @NotNull GuardianAPI api = Guardian.getApi();
+public class ZoneCommand extends MinecraftCommand {
+    private final GuardianConfig config = Guardian.getInstance().getGuardianConfig();
+    private final GuardianAPI api = Guardian.getApi();
 
     public ZoneCommand() {
-        super();
-        command = this;
+        super("Used for managing protection zones.");
     }
 
     @Override
-    public @NotNull CommandImpl create() {
-        return command("zone")
-                .arg("add",
-                        desc("Allow a player to access a zone."),
-                        sender -> messenger.sendMessage("/zone add <zone_id> <player/uuid>", sender),
-                        arg(
-                                desc("Allow a player to access a zone."),
-                                (sender, input) -> {
-                                    String id = (String) input[0];
-                                    Zone zone = api.getZone(id);
-                                    if (zone == null) {
-                                        messenger.sendMessage("No zone with the id '" + id + "' can be found.", sender);
-                                        return;
-                                    }
-                                    if (!zone.canEdit(sender instanceof Player ? ((Player) sender).getUniqueId() : UUID.randomUUID())) {
-                                        messenger.sendMessage("You may not edit this zone.", sender);
-                                        return;
-                                    }
-                                    OfflinePlayer player = (OfflinePlayer) input[1];
-                                    if (zone.isAllowed(player.getUniqueId())) {
-                                        messenger.sendMessage("This player was already added.", sender);
-                                    } else {
-                                        zone.addPlayer(player.getUniqueId());
-                                        messenger.sendMessage("Added a new player to this zone.", sender);
-                                    }
-                                    api.updateCache();
-                                },
-                                new ArgZone(),
-                                new ArgPlayer()
-                        )
-                )
-                .arg("create",
-                        desc("Create a new zone.\nUse the wand to select corners."),
-                        sender -> messenger.sendMessage("/zone create <zone_id>", sender),
-                        arg(
-                                desc("Create a new zone.\nUse the wand to select corners."),
-                                (sender, input) -> {
-                                    if (!(sender instanceof Player)) return;
-                                    Player player = (Player) sender;
-                                    Location l1 = api.getWandPosition(player, 1);
-                                    Location l2 = api.getWandPosition(player, 2);
-                                    if (l1 == null || l2 == null) {
-                                        messenger.sendMessage("Please set zone corners using a zone wand first.", player);
-                                        return;
-                                    }
-                                    if (l1.getWorld() != l2.getWorld() || l1.distanceSquared(l2) > (config.maxZoneDiameter * config.maxZoneDiameter)) {
-                                        messenger.sendMessage("The selected area is larger than " + config.maxZoneDiameter + "×" + config.maxZoneDiameter + " blocks in diameter.", player);
-                                        return;
-                                    }
-                                    @SuppressWarnings("all")
-                                    String id = input[0].toString();
-                                    if (api.getZone(id) != null) {
-                                        messenger.sendMessage("A zone with the id '" + id + "' already exists.", sender);
-                                        return;
-                                    }
-                                    CuboidalZone zone = CuboidalZone.createZone(player, id, l1, l2);
-                                    if (!player.isOp() && !api.canCreateZone(zone, player)) {
-                                        messenger.sendMessage("This zone conflicts with others that you are unable to edit or override.", player);
-                                        return;
-                                    }
-                                    api.registerZone(zone);
-                                    api.scheduleSave();
-                                    api.updateCache();
-                                    messenger.sendMessage("A cuboidal zone with the id '" + id + "' has been created.", sender);
-                                },
-                                new ArgString().setLabel("zone_id")
-                        )
-                )
-                .arg("createpoly",
-                        desc("Create a polyhedral zone.\nUse the poly-wand to select points."),
-                        sender -> messenger.sendMessage("/zone createpoly <zone_id>", sender),
-                        arg(
-                                desc("Create a polyhedral zone.\nUse the poly-wand to select points."),
-                                (sender, input) -> {
-                                    if (!(sender instanceof Player)) return;
-                                    Player player = (Player) sender;
-                                    List<Location> locations = api.getPolywandPositions(player);
-                                    if (locations.size() < 4) {
-                                        messenger.sendMessage("Please set at least 4 zone vertices using a zone polywand first.", player);
-                                        return;
-                                    }
-                                    World world = locations.get(0).getWorld();
-                                    for (Location location : locations) {
-                                        if (location.getWorld() != world || location.distanceSquared(locations.get(0)) > (config.maxZoneDiameter * config.maxZoneDiameter)) {
-                                            messenger.sendMessage("The selected area is larger than " + config.maxZoneDiameter + "×" + config.maxZoneDiameter + " blocks in diameter.", player);
-                                            return;
-                                        }
-                                    }
-                                    String id = input[0].toString();
-                                    if (api.getZone(id) != null) {
-                                        messenger.sendMessage("A zone with the id '" + id + "' already exists.", sender);
-                                        return;
-                                    }
-                                    PolyhedralZone zone = PolyhedralZone.createZone(player, id, locations.toArray(new Location[0]));
-                                    if (!player.isOp() && !api.canCreateZone(zone, player)) {
-                                        messenger.sendMessage("This zone conflicts with others that you are unable to edit or override.", player);
-                                        return;
-                                    }
-                                    api.registerZone(zone);
-                                    api.scheduleSave();
-                                    api.updateCache();
-                                    messenger.sendMessage("A polyhedral zone with the id '" + id + "' has been created.", sender);
-                                },
-                                new ArgString().setLabel("zone_id")
-                        )
-                )
-                .arg("delete",
-                        desc("Delete a zone."),
-                        sender -> messenger.sendMessage("/zone delete <zone_id>", sender),
-                        arg(
-                                desc("Delete a zone."),
-                                (sender, input) -> {
-                                    String id = input[0].toString();
-                                    Zone zone = api.getZone(id);
-                                    if (zone == null) {
-                                        messenger.sendMessage("No zone with the id '" + id + "' can be found.", sender);
-                                        return;
-                                    }
-                                    if (!zone.canEdit(sender instanceof Player ? ((Player) sender).getUniqueId() : UUID.randomUUID())) {
-                                        messenger.sendMessage("You may not edit this zone.", sender);
-                                        return;
-                                    }
-                                    api.removeZone(zone);
-                                    api.scheduleSave();
-                                    api.updateCache();
-                                    messenger.sendMessage("A zone with the id '" + id + "' has been removed.", sender);
-                                },
-                                new ArgZone()
-                        )
-                )
-                .arg(new String[]{"desc", "description"}, arg(desc("Set the description of a zone."),
-                        (sender, input) -> {
-                            String id = input[0].toString();
-                            Zone zone = api.getZone(id);
-                            if (zone == null) {
-                                messenger.sendMessage("No zone with the id '" + id + "' can be found.", sender);
-                                return;
-                            }
-                            if (!zone.canEdit(sender instanceof Player ? ((Player) sender).getUniqueId() : UUID.randomUUID())) {
-                                messenger.sendMessage("You may not edit this zone.", sender);
-                                return;
-                            }
-                            zone.setDescription(input[1] != null ? input[1].toString() : null);
-                            api.scheduleSave();
-                            api.updateCache();
-                            messenger.sendMessage("This zone's description was updated.", sender);
-                        },
-                        new ArgZone(),
-                        new ArgStringFinal().setRequired(false).setLabel("text"))
-                )
-                .arg("info",
-                        sender -> {
-                            if (!(sender instanceof Player)) return;
-                            List<Zone> zones = api.getZones(((Player) sender).getLocation().getBlock().getLocation());
-                            if (zones.isEmpty()) {
-                                messenger.sendMessage("There are no zones at your location.", sender);
-                            } else {
-                                List<String> names = new ArrayList<>();
-                                zones.forEach(zone -> names.add(zone.getKey().toString()));
-                                messenger.sendMessage(new ComponentBuilder("Zones at your location:")
-                                        .append(System.lineSeparator())
-                                        .append(messenger.getBullets(new MagicList<>(names)
-                                                .collect(string -> new ComponentBuilder(string)
-                                                        .event(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/zone info " + string))
-                                                        .event(new HoverEvent(HoverEvent.Action.SHOW_TEXT, TextComponent.fromLegacyText("Click to view.")))
-                                                        .create()).toArray(new BaseComponent[0][0])
-                                        ))
-                                        .create(), sender);
-                            }
-                        },
-                        arg(
-                                (sender, input) -> {
-                                    if (input[0] == null) {
-                                        if (!(sender instanceof Player)) return;
-                                        List<Zone> zones = api.getZones(((Player) sender).getLocation().getBlock().getLocation());
-                                        if (zones.isEmpty()) {
-                                            messenger.sendMessage("There are no zones at your location.", sender);
-                                        } else {
-                                            List<String> names = new ArrayList<>();
-                                            zones.forEach(zone -> names.add(zone.getKey().toString()));
-                                            messenger.sendMessage(new ComponentBuilder("Zones at your location:")
-                                                    .append(System.lineSeparator())
-                                                    .append(messenger.getBullets(names.toArray(new String[0])))
-                                                    .create(), sender);
-                                        }
-                                        return;
-                                    }
-                                    String id = input[0].toString();
-                                    Zone zone = api.getZone(id);
-                                    if (zone == null) {
-                                        messenger.sendMessage("No zone with the id '" + id + "' can be found.", sender);
-                                        return;
-                                    }
-                                    List<String> players = new ArrayList<>();
-                                    for (UUID uuid : zone.getAllowedPlayers()) {
-                                        players.add(Bukkit.getOfflinePlayer(uuid).getName());
-                                    }
-                                    List<String> flags = new ArrayList<>();
-                                    for (String flag : zone.getFlags()) {
-                                        flags.add(convertCase(flag));
-                                    }
-                                    BaseComponent[] desc = zone.getDescription() == null ? new ComponentBuilder("").create() : new ComponentBuilder(System.lineSeparator()).append(TextComponent.fromLegacyText(zone.getDescription(), ChatColor.GRAY)).create();
-                                    messenger.sendMessage(new ComponentBuilder("Zone Info: ")
-                                            .color(ChatColor.GRAY)
-                                            .append(zone.getName())
-                                            .color(ChatColor.RESET)
-                                            .append(desc)
-                                            .append(System.lineSeparator())
-                                            .reset()
-                                            .append(System.lineSeparator())
-                                            .append("Allowed Players:")
-                                            .color(ChatColor.WHITE)
-                                            .append(System.lineSeparator())
-                                            .append(players.isEmpty() ? "(None)" : String.join(", ", players))
-                                            .color(Messenger.color("#29ffdb", '7'))
-                                            .append(System.lineSeparator())
-                                            .reset()
-                                            .append(System.lineSeparator())
-                                            .append("Active Flags:")
-                                            .color(ChatColor.WHITE)
-                                            .append(System.lineSeparator())
-                                            .append(flags.isEmpty() ? "(None)" : String.join(", ", flags))
-                                            .color(Messenger.color("#29ffdb", '7'))
-                                            .create(), sender);
-                                },
-                                new ArgZone().setRequired(false)
-                        )
-                )
-                .arg("list",
-                        desc("List all zones, or all zones that a specific player can access."),
-                        sender -> {
-                            if (api.getZoneKeys().isEmpty()) {
-                                messenger.sendMessage("No zones have been defined.", sender);
-                            } else {
-                                ComponentBuilder builder = new ComponentBuilder("Defined Zones:");
-                                for (NamespacedKey key : api.getZoneKeys()) {
-                                    builder
-                                            .append(System.lineSeparator())
-                                            .reset()
-                                            .append(" - ")
-                                            .color(Messenger.color("#f28900", '8'))
-                                            .append(convertCase(key.getKey()))
-                                            .color(Messenger.color("#29ffdb", '7'))
-                                            .event(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/zone info " + key.toString()));
-                                }
-                                messenger.sendMessage(builder.create(), sender);
-                            }
-                        },
-                        arg(
-                                desc("List all zones, or all zones that a specific player can access."),
-                                (sender, input) -> {
-                                    List<Zone> zones = api.getZones();
-                                    zones.removeIf(zone -> !zone.canEdit(((OfflinePlayer) input[0]).getUniqueId()));
-                                    if (zones.isEmpty()) {
-                                        messenger.sendMessage("No zones have been defined.", sender);
-                                    } else {
-                                        List<NamespacedKey> keys = new ArrayList<>();
-                                        for (Zone zone : zones) {
-                                            keys.add(zone.getKey());
-                                        }
-                                        ComponentBuilder builder = new ComponentBuilder("Zones Editable by " + ((OfflinePlayer) input[0]).getName() + ":");
-                                        for (NamespacedKey key : keys) {
-                                            builder
-                                                    .append(System.lineSeparator())
-                                                    .reset()
-                                                    .append(" - ")
-                                                    .color(Messenger.color("#f28900", '8'))
-                                                    .append(convertCase(key.getKey()))
-                                                    .color(Messenger.color("#29ffdb", '7'))
-                                                    .event(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/zone info " + key.toString()));
-                                        }
-                                        messenger.sendMessage(builder.create(), sender);
-                                    }
-                                },
-                                new ArgOfflinePlayer()
-                        )
-                )
-                .arg("remove",
-                        desc("Revoke a player's access to a zone."),
-                        sender -> messenger.sendMessage("/zone remove <zone_id> <player/uuid>", sender),
-                        arg(
-                                desc("Revoke a player's access to a zone."),
-                                (sender, input) -> {
-                                    String id = (String) input[0];
-                                    Zone zone = api.getZone(id);
-                                    if (zone == null) {
-                                        messenger.sendMessage("No zone with the id '" + id + "' can be found.", sender);
-                                        return;
-                                    }
-                                    if (!zone.canEdit(sender instanceof Player ? ((Player) sender).getUniqueId() : UUID.randomUUID())) {
-                                        messenger.sendMessage("You may not edit this zone.", sender);
-                                        return;
-                                    }
-                                    OfflinePlayer player = (OfflinePlayer) input[1];
-                                    if (!zone.isAllowed(player.getUniqueId())) {
-                                        messenger.sendMessage("This player was not added.", sender);
-                                    } else {
-                                        zone.removePlayer(player.getUniqueId());
-                                        messenger.sendMessage("Removed a player from this zone.", sender);
-                                    }
-                                    api.updateCache();
-                                },
-                                new ArgZone(),
-                                new ArgPlayer()
-                        )
-                )
-                .arg("show",
-                        desc("Display the spatial bounds of a zone."),
-                        sender -> {
-                            if (!(sender instanceof Player)) return;
-                            List<Zone> zones = api.getZones(((Player) sender).getLocation().getBlock().getLocation());
-                            if (zones.isEmpty()) {
-                                messenger.sendMessage("No zones can be found at your location.", sender);
-                                return;
-                            }
-                            zones.forEach(zone -> {
-                                if (zone instanceof CuboidalZone)
-                                    ((CuboidalZone) zone).showBounds();
-                                else if (zone instanceof PolyhedralZone)
-                                    ((PolyhedralZone) zone).showBounds();
-                            });
-                        },
-                        arg(
-                                desc("Display the spatial bounds of a zone."),
-                                (sender, input) -> {
-                                    String id = input[0].toString();
-                                    Zone zone = api.getZone(id);
-                                    if (zone == null) {
-                                        messenger.sendMessage("No zone with the id '" + id + "' can be found.", sender);
-                                        return;
-                                    }
-                                    if (zone instanceof CuboidalZone)
-                                        ((CuboidalZone) zone).showBounds();
-                                    else if (zone instanceof PolyhedralZone)
-                                        ((PolyhedralZone) zone).showBounds();
-                                },
-                                new ArgZone()
-                        )
-                )
-                .arg("teleport",
-                        arg(
-                                desc("Teleport to a zone."),
-                                (sender, input) -> {
-                                    if (!(sender instanceof Player)) return;
-                                    if (!sender.hasPermission("guardian.command.teleport")) {
-                                        messenger.sendMessage("You do not have permission for this action.", sender);
-                                        return;
-                                    }
-                                    Player player = (Player) sender;
-                                    String id = input[0].toString();
-                                    Zone zone = api.getZone(id);
-                                    if (zone == null) {
-                                        messenger.sendMessage("No zone with the id '" + id + "' can be found.", sender);
-                                        return;
-                                    }
-                                    player.teleport(zone.getLocation());
-                                    messenger.sendMessage("Teleporting to '" + zone.getName() + "'.", sender);
-                                },
-                                new ArgZone()
-                        )
-                )
-                .arg("toggle",
-                        desc("Enable/disable certain actions within a zone.\nView all flags? /guardian flags"),
-                        sender -> messenger.sendMessage("/zone toggle <zone_id> <flag>", sender),
-                        arg(
-                                desc("Enable/disable certain actions within a zone.\nView all flags? /guardian flags"),
-                                (sender, input) -> {
-                                    String id = input[0].toString();
-                                    String flag = input[1].toString();
-                                    Zone zone = api.getZone(id);
-                                    if (zone == null) {
-                                        messenger.sendMessage("No zone with the id '" + id + "' can be found.", sender);
-                                        return;
-                                    }
-                                    if (!api.isProtectionFlag(flag)) {
-                                        messenger.sendMessage("No flag with the id '" + id + "' is registered.", sender);
-                                        return;
-                                    }
-                                    if (!zone.canEdit(sender instanceof Player ? ((Player) sender).getUniqueId() : UUID.randomUUID())) {
-                                        messenger.sendMessage("You may not edit this zone.", sender);
-                                        return;
-                                    }
-                                    if (!sender.hasPermission("guardian.flag." + id)) {
-                                        messenger.sendMessage("You do not have permission to toggle this flag.", sender);
-                                        return;
-                                    }
-                                    if (zone.hasFlag(flag)) {
-                                        zone.removeFlag(flag);
-                                        messenger.sendMessage("Deactivated this flag for the specified zone.", sender);
-                                    } else {
-                                        zone.addFlag(flag);
-                                        messenger.sendMessage(new ComponentBuilder("Activated this flag for the specified zone. ")
-                                                .append("(Flags are blocking - active flags override default behaviour.)")
-                                                .color(ChatColor.GRAY)
-                                                .create(), sender);
-                                    }
-                                    api.updateCache();
-                                },
-                                new ArgZone(),
-                                new ArgFlag()
-                        )
-                );
+    public MinecraftBehaviour create() {
+        return command("zone", "gzone", "guardianzone")
+            .arg("add", ZoneArgument.ZONE, PLAYER, this::add)
+            .arg("remove", ZoneArgument.ZONE, PLAYER, this::remove)
+            .arg("create", "poly", Arguments.STRING.labelled("id").described("The zone ID."), this::createPoly)
+            .arg("create", Arguments.STRING.labelled("id").described("The zone ID."), this::create)
+            .arg("delete", ZoneArgument.ZONE, this::delete)
+            .arg("describe", ZoneArgument.ZONE, Arguments.GREEDY_STRING, this::describe)
+            .arg("info", ZoneArgument.ZONE.asOptional(), this::info)
+            .arg("list", PLAYER.asOptional(), this::list)
+            .arg("show", ZoneArgument.ZONE.asOptional(), this::show)
+            .arg("teleport", ZoneArgument.ZONE, this::teleport)
+            .permission("guardian.command.teleport")
+            .arg("toggle", ZoneArgument.ZONE, FlagArgument.FLAG, this::toggle);
     }
 
-    @Override
-    public @NotNull CommandSingleAction<CommandSender> getDefault() {
-        return sender -> messenger.sendMessage(api.getCommandHelpMessage(this), sender);
+    private Result teleport(CommandSender sender, Arguments arguments) {
+        final Zone zone = arguments.get(0);
+        final ColorProfile profile = this.getProfile();
+        if (!(sender instanceof Player player)) return CommandResult.LAPSE;
+        player.teleport(zone.getLocation());
+        //<editor-fold desc="Message" defaultstate="collapsed">
+        sender.sendMessage(Component.textOfChildren(
+            text("Teleporting to '", profile.dark()),
+            text(zone.getName(), profile.highlight()),
+            text("'.'", profile.dark())
+        ));
+        //</editor-fold>
+        return CommandResult.PASSED;
+    }
+
+    private Result add(CommandSender sender, Arguments arguments) {
+        final Zone zone = arguments.get(0);
+        final Player target = arguments.get(1);
+        final ColorProfile profile = this.getProfile();
+        if (sender instanceof Player player && !zone.canEdit(player.getUniqueId())) {
+            //<editor-fold desc="Message" defaultstate="collapsed">
+            sender.sendMessage(Component.textOfChildren(
+                text("You cannot edit this zone.", profile.dark())
+            ));
+            //</editor-fold>
+        } else if (zone.isAllowed(target.getUniqueId())) {
+            //<editor-fold desc="Message" defaultstate="collapsed">
+            sender.sendMessage(Component.textOfChildren(
+                text("This player was already added.", profile.dark())
+            ));
+            //</editor-fold>
+        } else {
+            zone.addPlayer(target.getUniqueId());
+            //<editor-fold desc="Message" defaultstate="collapsed">
+            sender.sendMessage(Component.textOfChildren(
+                text("Added a new player to this zone.", profile.dark())
+            ));
+            //</editor-fold>
+            this.api.updateCache();
+        }
+        return CommandResult.PASSED;
+    }
+
+    private Result remove(CommandSender sender, Arguments arguments) {
+        final Zone zone = arguments.get(0);
+        final Player target = arguments.get(1);
+        final ColorProfile profile = this.getProfile();
+        if (sender instanceof Player player && !zone.canEdit(player.getUniqueId())) {
+            //<editor-fold desc="Message" defaultstate="collapsed">
+            sender.sendMessage(Component.textOfChildren(
+                text("You cannot edit this zone.", profile.dark())
+            ));
+            //</editor-fold>
+        } else if (!zone.isAllowed(target.getUniqueId())) {
+            //<editor-fold desc="Message" defaultstate="collapsed">
+            sender.sendMessage(Component.textOfChildren(
+                text("This player was not added.", profile.dark())
+            ));
+            //</editor-fold>
+        } else {
+            zone.removePlayer(target.getUniqueId());
+            //<editor-fold desc="Message" defaultstate="collapsed">
+            sender.sendMessage(Component.textOfChildren(
+                text("Removed a player from this zone.", profile.dark())
+            ));
+            //</editor-fold>
+            this.api.updateCache();
+        }
+        return CommandResult.PASSED;
+    }
+
+    private Result create(CommandSender sender, Arguments arguments) {
+        if (!(sender instanceof Player player)) return CommandResult.LAPSE;
+        final String id = arguments.get(0);
+        if (id.equals("poly")) return CommandResult.WRONG_INPUT;
+        final Location l1 = api.getWandPosition(player, 1), l2 = api.getWandPosition(player, 2);
+        final ColorProfile profile = this.getProfile();
+        if (l1 == null || l2 == null) {
+            //<editor-fold desc="Message" defaultstate="collapsed">
+            sender.sendMessage(Component.textOfChildren(
+                text("Please set zone corners using a zone wand first.", profile.dark())
+            ));
+            //</editor-fold>
+            return CommandResult.PASSED;
+        } else if (l1.getWorld() != l2.getWorld() || l1.distanceSquared(l2) > (config.maxZoneDiameter * config.maxZoneDiameter)) {
+            //<editor-fold desc="Message" defaultstate="collapsed">
+            sender.sendMessage(Component.textOfChildren(
+                text("The selected area is larger than ", profile.dark()),
+                text(config.maxZoneDiameter, profile.highlight()),
+                text("×", profile.pop()),
+                text(config.maxZoneDiameter, profile.highlight()),
+                text(" blocks in diameter.", profile.dark())
+            ));
+            //</editor-fold>
+            return CommandResult.PASSED;
+        } else if (api.getZone(id) != null) {
+            //<editor-fold desc="Message" defaultstate="collapsed">
+            sender.sendMessage(Component.textOfChildren(
+                text("A zone with the id '", profile.dark()),
+                text(id, profile.highlight()),
+                text("' already exists.", profile.dark())
+            ));
+            //</editor-fold>
+            return CommandResult.PASSED;
+        }
+        final CuboidalZone zone = CuboidalZone.createZone(player, id, l1, l2);
+        if (!player.isOp() && !api.canCreateZone(zone, player)) {
+            //<editor-fold desc="Message" defaultstate="collapsed">
+            sender.sendMessage(Component.textOfChildren(
+                text("This zone conflicts with others that you are unable to edit or override.", profile.dark())
+            ));
+            //</editor-fold>
+            return CommandResult.PASSED;
+        }
+        this.api.registerZone(zone);
+        this.api.scheduleSave();
+        this.api.updateCache();
+        //<editor-fold desc="Message" defaultstate="collapsed">
+        sender.sendMessage(Component.textOfChildren(
+            text("A cuboidal zone with the id '", profile.dark()),
+            text(id, profile.highlight()),
+            text("' has been created.", profile.dark())
+        ));
+        //</editor-fold>
+        return CommandResult.PASSED;
+    }
+
+    private Result createPoly(CommandSender sender, Arguments arguments) {
+        if (!(sender instanceof Player player)) return CommandResult.LAPSE;
+        final String id = arguments.get(0);
+        if (id.length() < 1) return CommandResult.WRONG_INPUT;
+        final List<Location> locations = api.getPolywandPositions(player);
+        final ColorProfile profile = this.getProfile();
+        if (locations.size() < 4) {
+            //<editor-fold desc="Message" defaultstate="collapsed">
+            sender.sendMessage(Component.textOfChildren(
+                text("Please set at least 4 zone vertices using a zone polywand first.", profile.dark())
+            ));
+            //</editor-fold>
+            return CommandResult.PASSED;
+        }
+        final World world = locations.get(0).getWorld();
+        for (Location location : locations) {
+            if (location.getWorld() != world || location.distanceSquared(locations.get(0)) > (config.maxZoneDiameter * config.maxZoneDiameter)) {
+                //<editor-fold desc="Message" defaultstate="collapsed">
+                sender.sendMessage(Component.textOfChildren(
+                    text("The selected area is larger than ", profile.dark()),
+                    text(config.maxZoneDiameter, profile.highlight()),
+                    text("×", profile.pop()),
+                    text(config.maxZoneDiameter, profile.highlight()),
+                    text(" blocks in diameter.", profile.dark())
+                ));
+                //</editor-fold>
+                return CommandResult.PASSED;
+            }
+        }
+        if (api.getZone(id) != null) {
+            //<editor-fold desc="Message" defaultstate="collapsed">
+            sender.sendMessage(Component.textOfChildren(
+                text("A zone with the id '", profile.dark()),
+                text(id, profile.highlight()),
+                text("' already exists.", profile.dark())
+            ));
+            //</editor-fold>
+            return CommandResult.PASSED;
+        }
+        final PolyhedralZone zone = PolyhedralZone.createZone(player, id, locations.toArray(new Location[0]));
+        if (!player.isOp() && !api.canCreateZone(zone, player)) {
+            //<editor-fold desc="Message" defaultstate="collapsed">
+            sender.sendMessage(Component.textOfChildren(
+                text("This zone conflicts with others that you are unable to edit or override.", profile.dark())
+            ));
+            //</editor-fold>
+            return CommandResult.PASSED;
+        }
+        this.api.registerZone(zone);
+        this.api.scheduleSave();
+        this.api.updateCache();
+        //<editor-fold desc="Message" defaultstate="collapsed">
+        sender.sendMessage(Component.textOfChildren(
+            text("A polyhedral zone with the id '", profile.dark()),
+            text(id, profile.highlight()),
+            text("' has been created.", profile.dark())
+        ));
+        //</editor-fold>
+        return CommandResult.PASSED;
+    }
+
+    private Result delete(CommandSender sender, Arguments arguments) {
+        final Zone zone = arguments.get(0);
+        final ColorProfile profile = this.getProfile();
+        if (sender instanceof Player player && !zone.canEdit(player.getUniqueId())) {
+            //<editor-fold desc="Message" defaultstate="collapsed">
+            sender.sendMessage(Component.textOfChildren(
+                text("You cannot edit this zone.", profile.dark())
+            ));
+            //</editor-fold>
+        } else {
+            this.api.removeZone(zone);
+            this.api.scheduleSave();
+            this.api.updateCache();
+            //<editor-fold desc="Message" defaultstate="collapsed">
+            sender.sendMessage(Component.textOfChildren(
+                text("The zone '", profile.dark()),
+                text(zone.getName(), profile.highlight()),
+                text("' has been removed.", profile.dark())
+            ));
+            //</editor-fold>
+        }
+        return CommandResult.PASSED;
+    }
+
+    private Result describe(CommandSender sender, Arguments arguments) {
+        final Zone zone = arguments.get(0);
+        final String text = arguments.get(1);
+        final ColorProfile profile = this.getProfile();
+        if (sender instanceof Player player && !zone.canEdit(player.getUniqueId())) {
+            //<editor-fold desc="Message" defaultstate="collapsed">
+            sender.sendMessage(Component.textOfChildren(
+                text("You cannot edit this zone.", profile.dark())
+            ));
+            //</editor-fold>
+        } else {
+            zone.setDescription(text);
+            this.api.scheduleSave();
+            this.api.updateCache();
+            //<editor-fold desc="Message" defaultstate="collapsed">
+            sender.sendMessage(Component.textOfChildren(
+                text("This zone's description was updated.", profile.dark())
+            ));
+            //</editor-fold>
+        }
+        return CommandResult.PASSED;
+    }
+
+    private Result info(CommandSender sender, Arguments arguments) {
+        final Zone zone = arguments.get(0);
+        final ColorProfile profile = this.getProfile();
+        if (zone == null && sender instanceof Player player) {
+            final List<Zone> zones = api.getZones(player.getLocation().getBlock().getLocation());
+            if (zones.isEmpty()) {
+                //<editor-fold desc="Message" defaultstate="collapsed">
+                sender.sendMessage(Component.textOfChildren(
+                    text("There are no zones at your location.", profile.dark())
+                ));
+                //</editor-fold>
+                return CommandResult.PASSED;
+            }
+            //<editor-fold desc="Message" defaultstate="collapsed">
+            sender.sendMessage(Component.textOfChildren(
+                text("Zones at your location:", profile.dark())
+            ));
+            for (Zone thing : zones) {
+                sender.sendMessage(Component.textOfChildren(
+                    text(" - ", profile.pop()),
+                    text(thing.getKey().getKey(), profile.highlight())
+                ));
+            }
+            //</editor-fold>
+            return CommandResult.PASSED;
+        } else if (zone == null) return CommandResult.LAPSE;
+        final List<String> players = new ArrayList<>();
+        for (UUID uuid : zone.getAllowedPlayers()) players.add(Bukkit.getOfflinePlayer(uuid).getName());
+        final List<String> flags = new ArrayList<>();
+        for (String flag : zone.getFlags()) flags.add(convertCase(flag));
+        //<editor-fold desc="Message" defaultstate="collapsed">
+        final String description = zone.getDescription();
+        sender.sendMessage(Component.textOfChildren(
+            text("Zone Info for ", profile.dark()),
+            text(zone.getName(), profile.highlight()),
+            Component.newline(),
+            text(description == null ? "No description." : description, profile.light()),
+            Component.newline(),
+            Component.newline(),
+            text("Allowed Players:", profile.dark()),
+            Component.newline(),
+            text(players.isEmpty() ? "(None)" : String.join(", ", players), profile.highlight()),
+            Component.newline(),
+            Component.newline(),
+            text("Active Flags:", profile.dark()),
+            Component.newline(),
+            text(flags.isEmpty() ? "(None)" : String.join(", ", flags), profile.highlight()),
+            Component.newline()
+        ));
+        //</editor-fold>
+        return CommandResult.PASSED;
+    }
+
+    private Result list(CommandSender sender, Arguments arguments) {
+        final ColorProfile profile = this.getProfile();
+        final Player player = arguments.get(0);
+        if (api.getZoneKeys().isEmpty()) {
+            //<editor-fold desc="Message" defaultstate="collapsed">
+            sender.sendMessage(Component.textOfChildren(
+                text("No zones are defined.", profile.dark())
+            ));
+            //</editor-fold>
+        } else if (player == null) {
+            //<editor-fold desc="Message" defaultstate="collapsed">
+            sender.sendMessage(Component.textOfChildren(
+                text("List of Zones:", profile.dark())
+            ));
+            for (Zone zone : api.getZones()) {
+                sender.sendMessage(Component.textOfChildren(
+                    text(" - ", profile.pop()),
+                    text(this.convertCase(zone.getKey().getKey()), profile.highlight())
+                ).clickEvent(net.kyori.adventure.text.event.ClickEvent.runCommand("/zone info " + zone.getKey().getKey())));
+            }
+            //</editor-fold>
+        } else {
+            //<editor-fold desc="Message" defaultstate="collapsed">
+            sender.sendMessage(Component.textOfChildren(
+                text("List of Zones accessible by ", profile.dark()),
+                text(player.getName(), profile.highlight()),
+                text(":", profile.dark())
+            ));
+            for (Zone zone : api.getZones()) {
+                if (!zone.canEdit(player.getUniqueId())) continue;
+                sender.sendMessage(Component.textOfChildren(
+                    text(" - ", profile.pop()),
+                    text(this.convertCase(zone.getKey().getKey()), profile.highlight())
+                ).clickEvent(net.kyori.adventure.text.event.ClickEvent.runCommand("/zone info " + zone.getKey().getKey())));
+            }
+            //</editor-fold>
+        }
+        return CommandResult.PASSED;
+    }
+
+    private Result show(CommandSender sender, Arguments arguments) {
+        final Zone zone = arguments.get(0);
+        final ColorProfile profile = this.getProfile();
+        if (zone == null && sender instanceof Player player) {
+            final List<Zone> zones = api.getZones(player.getLocation().getBlock().getLocation());
+            if (zones.isEmpty()) {
+                //<editor-fold desc="Message" defaultstate="collapsed">
+                sender.sendMessage(Component.textOfChildren(
+                    text("There are no zones at your location.", profile.dark())
+                ));
+                //</editor-fold>
+            } else zones.get(0).showBounds();
+            return CommandResult.PASSED;
+        } else if (zone == null) return CommandResult.LAPSE;
+        zone.showBounds();
+        return CommandResult.PASSED;
+    }
+
+    private Result toggle(CommandSender sender, Arguments arguments) {
+        final Zone zone = arguments.get(0);
+        final String flag = arguments.get(1);
+        final ColorProfile profile = this.getProfile();
+        if (sender instanceof Player player && !zone.canEdit(player.getUniqueId())) {
+            //<editor-fold desc="Message" defaultstate="collapsed">
+            sender.sendMessage(Component.textOfChildren(
+                text("You cannot edit this zone.", profile.dark())
+            ));
+            //</editor-fold>
+        } else if (!sender.hasPermission("guardian.flag." + flag)) {
+            //<editor-fold desc="Message" defaultstate="collapsed">
+            sender.sendMessage(Component.textOfChildren(
+                text("You do not have permission to toggle this flag.", profile.dark())
+            ));
+            //</editor-fold>
+        } else if (zone.hasFlag(flag)) {
+            zone.removeFlag(flag);
+            this.api.updateCache();
+            //<editor-fold desc="Message" defaultstate="collapsed">
+            sender.sendMessage(Component.textOfChildren(
+                text("Deactivated ", profile.dark()),
+                text(this.convertCase(flag), profile.highlight()),
+                text(" for ", profile.dark()),
+                text(zone.getName(), profile.highlight()),
+                text(".", profile.dark())
+            ));
+            //</editor-fold>
+        } else {
+            zone.addFlag(flag);
+            this.api.updateCache();
+            //<editor-fold desc="Message" defaultstate="collapsed">
+            sender.sendMessage(Component.textOfChildren(
+                text("Activated ", profile.dark()),
+                text(this.convertCase(flag), profile.highlight()),
+                text(" for ", profile.dark()),
+                text(zone.getName(), profile.highlight()),
+                text(".", profile.dark())
+            ));
+            //</editor-fold>
+        }
+        return CommandResult.PASSED;
     }
 
     private String convertCase(String string) {
-        String[] words = string.split("_");
-        List<String> list = new ArrayList<>();
-        for (String word : words) {
-            list.add((word.isEmpty())
-                    ? word
-                    : Ascii.toUpperCase(word.charAt(0)) + Ascii.toLowerCase(word.substring(1)));
-        }
-        return String.join(" ", list);
-    }
-
-
-    @Override
-    public @NotNull List<String> getAliases() {
-        return Arrays.asList("gz", "gzone", "guardianzone", "region");
-    }
-
-    @Override
-    public @NotNull String getUsage() {
-        return "/zone help";
-    }
-
-    @Override
-    public @NotNull String getDescription() {
-        return "Used for managing protection zones.";
-    }
-
-    @Override
-    public @Nullable String getPermission() {
-        return "guardian.command.zone";
-    }
-
-    @Override
-    public @Nullable String getPermissionMessage() {
-        return null;
-    }
-
-    @Override
-    public @Nullable List<String> getCompletions(int i) {
-        return null;
-    }
-
-    @Override
-    public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
-        return execute(sender, args);
-    }
-
-    @Override
-    public @Nullable List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String alias, @NotNull String[] args) {
-        return api.getTabCompletions(this, args);
+        return Zone.convertCase(string);
     }
 
 }

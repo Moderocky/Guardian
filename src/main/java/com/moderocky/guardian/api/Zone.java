@@ -105,6 +105,9 @@ public abstract class Zone {
 
     public abstract void setDescription(String description);
 
+    public void showBounds() {
+    }
+
     /**
      * @return The individual zone key, in the form "plugin:zone_id" to prevent conflicts.
      */
