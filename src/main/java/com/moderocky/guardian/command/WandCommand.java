@@ -3,89 +3,54 @@ package com.moderocky.guardian.command;
 import com.moderocky.guardian.Guardian;
 import com.moderocky.guardian.api.GuardianAPI;
 import com.moderocky.guardian.config.GuardianConfig;
-import com.moderocky.guardian.util.Messenger;
-import com.moderocky.mask.command.ArgInteger;
-import com.moderocky.mask.command.Commander;
-import com.moderocky.mask.template.WrappedCommand;
+import mx.kenzie.centurion.*;
+import net.kyori.adventure.text.Component;
 import org.bukkit.Material;
 import org.bukkit.block.BlockFace;
-import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import static net.kyori.adventure.text.Component.text;
 
-public class WandCommand extends Commander<Player> implements WrappedCommand {
+public class WandCommand extends MinecraftCommand {
 
-    private final @NotNull GuardianConfig config = Guardian.getInstance().getGuardianConfig();
-    private final @NotNull Messenger messenger = Guardian.getMessenger();
-    private final @NotNull GuardianAPI api = Guardian.getApi();
+    private final GuardianConfig config = Guardian.getInstance().getGuardianConfig();
+    private final GuardianAPI api = Guardian.getApi();
 
-    @Override
-    public @NotNull String getUsage() {
-        return "/" + getCommand() + " [pos <int>]";
+    protected WandCommand() {
+        super("Obtain a guardian wand.");
     }
 
     @Override
-    public @NotNull String getDescription() {
-        return "Obtain a guardian wand.";
-    }
-
-    @Override
-    public @Nullable String getPermission() {
-        return "guardian.command." + getCommand();
-    }
-
-    @Override
-    public @Nullable String getPermissionMessage() {
-        return null;
-    }
-
-    @Override
-    public @NotNull CommandImpl create() {
+    public MinecraftBehaviour create() {
         return command("wand", "gwand", "guardianwand")
-                .arg(new String[]{"pos", "position"}, arg(
-                        desc("Set the specified wand position to your location."),
-                        (player, input) -> {
-                            ItemStack item = player.getInventory().getItemInMainHand();
-                            if (api.isWand(item)) {
-                                api.setWandPosition(player, (int) input[0], player.getLocation(), BlockFace.UP);
-                            }
-                        }, new ArgInteger().setLabel("1/2"))
-                );
+            .arg("pos", Arguments.INTEGER, this::setPosition)
+            .arg("get", this::getWand);
     }
 
-    @Override
-    public @NotNull CommandSingleAction<Player> getDefault() {
-        return player -> {
-            PlayerInventory inventory = player.getInventory();
-            if (inventory.getItemInMainHand().getType() == Material.AIR)
-                inventory.setItemInMainHand(config.getWand());
-            else
-                inventory.addItem(config.getWand());
-            messenger.sendMessage("You have received a wand. Use this to select points!", player);
-        };
+    private Result setPosition(CommandSender sender, Arguments arguments) {
+        if (!(sender instanceof Player player)) return CommandResult.LAPSE;
+        final PlayerInventory inventory = player.getInventory();
+        final ItemStack item = inventory.getItemInMainHand();
+        if (api.isWand(item)) api.setWandPosition(player, arguments.get(0), player.getLocation(), BlockFace.UP);
+        return CommandResult.PASSED;
     }
 
-    @Override
-    public @NotNull String getCommand() {
-        return "wand";
+    private Result getWand(CommandSender sender, Arguments arguments) {
+        if (!(sender instanceof Player player)) return CommandResult.LAPSE;
+        final PlayerInventory inventory = player.getInventory();
+        if (inventory.getItemInMainHand().getType() == Material.AIR)
+            inventory.setItemInMainHand(config.getWand());
+        else inventory.addItem(config.getWand());
+        //<editor-fold desc="Message" defaultstate="collapsed">
+        final ColorProfile profile = this.getProfile();
+        sender.sendMessage(Component.textOfChildren(
+            text("Received a wand.", profile.dark())
+        ));
+        //</editor-fold>
+        return CommandResult.PASSED;
     }
 
-    @Override
-    public @Nullable List<String> getCompletions(int i) {
-        return i == 1 ? Collections.singletonList("pos") : i == 2 ? Arrays.asList("1", "2") : null;
-    }
-
-    @Override
-    public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
-        if (!(sender instanceof Player)) return false;
-        return execute((Player) sender, args);
-    }
 }
