@@ -6,70 +6,18 @@
 
     <groupId>com.moderocky</groupId>
     <artifactId>Guardian</artifactId>
-    <version>1.2.6</version>
+    <version>1.3.0</version>
     <packaging>jar</packaging>
     <name>${project.artifactId}</name>
 
     <properties>
-        <maven.compiler.source>1.8</maven.compiler.source>
-        <maven.compiler.target>1.8</maven.compiler.target>
+        <maven.compiler.source>18</maven.compiler.source>
+        <maven.compiler.target>18</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
     <build>
-        <finalName>${project.artifactId}</finalName>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-javadoc-plugin</artifactId>
-                <version>3.1.1</version>
-                <configuration>
-                    <outputDirectory>../../../public</outputDirectory>
-                    <destDir>../../../public</destDir>
-                    <stylesheetfile>public/style/customstyle.css</stylesheetfile>
-                    <!-- Include links to Bukkit API for Bukkit objects -->
-                    <links>
-                        <link>https://hub.spigotmc.org/javadocs/spigot/</link>
-                    </links>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.8.0</version>
-                <configuration>
-                    <source>1.8</source>
-                    <target>1.8</target>
-                    <encoding>UTF-8</encoding>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-shade-plugin</artifactId>
-                <version>3.1.1</version>
-                <executions>
-                    <execution>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>shade</goal>
-                        </goals>
-                        <configuration>
-                            <relocations>
-                                <relocation>
-                                    <pattern>org.bstats</pattern>
-                                    <shadedPattern>com.moderocky.guardian.bstats</shadedPattern>
-                                </relocation>
-                                <relocation>
-                                    <pattern>com.moderocky.mask</pattern>
-                                    <shadedPattern>com.moderocky.guardian.mask</shadedPattern>
-                                </relocation>
-                            </relocations>
-                            <createDependencyReducedPom>false</createDependencyReducedPom>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-        </plugins>
+        <finalName>Guardian</finalName>
         <resources>
             <resource>
                 <directory>src/main/resources</directory>
@@ -81,130 +29,53 @@
         </resources>
     </build>
 
-    <reporting>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-javadoc-plugin</artifactId>
-                <version>3.1.1</version>
-                <configuration>
-                    <outputDirectory>../../../public</outputDirectory>
-                    <destDir>../../../public</destDir>
-                    <stylesheetfile>public/style/customstyle.css</stylesheetfile>
-                    <!-- Include links to Bukkit API for Bukkit objects -->
-                    <links>
-                        <link>https://hub.spigotmc.org/javadocs/spigot/</link>
-                    </links>
-                </configuration>
-            </plugin>
-        </plugins>
-    </reporting>
-
     <distributionManagement>
         <repository>
-            <id>pan-repo</id>
-            <url>https://gitlab.com/api/v4/projects/18568066/packages/maven</url>
+            <id>kenzie</id>
+            <url>https://repo.kenzie.mx/releases</url>
         </repository>
-        <snapshotRepository>
-            <id>pan-repo</id>
-            <url>https://gitlab.com/api/v4/projects/18568066/packages/maven</url>
-        </snapshotRepository>
     </distributionManagement>
 
     <repositories>
         <repository>
-            <id>pan-repo</id>
-            <name>Pandaemonium Repository</name>
-            <url>https://gitlab.com/api/v4/projects/18568066/packages/maven</url>
+            <id>kenzie</id>
+            <url>https://repo.kenzie.mx/releases</url>
         </repository>
         <repository>
             <id>papermc</id>
-            <url>https://papermc.io/repo/repository/maven-public/</url>
-        </repository>
-        <repository>
-            <id>spigot-repo</id>
-            <url>https://hub.spigotmc.org/nexus/content/repositories/snapshots/</url>
-        </repository>
-        <repository>
-            <id>bungeecord-repo</id>
-            <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
-        </repository>
-        <repository>
-            <id>jitpack.io</id>
-            <url>https://jitpack.io</url>
-        </repository>
-        <repository>
-            <id>CodeMC</id>
-            <url>https://repo.codemc.org/repository/maven-public</url>
+            <url>https://repo.papermc.io/repository/maven-public/</url>
         </repository>
     </repositories>
 
     <dependencies>
         <dependency>
-            <groupId>net.md-5</groupId>
-            <artifactId>bungeecord-chat</artifactId>
-            <version>1.16-R0.2-SNAPSHOT</version>
-            <type>jar</type>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.spigotmc</groupId>
-            <artifactId>spigot-api</artifactId>
-            <version>1.16.1-R0.1-SNAPSHOT</version>
+            <groupId>io.papermc.paper</groupId>
+            <artifactId>paper-api</artifactId>
+            <version>1.19.3-R0.1-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.jetbrains</groupId>
             <artifactId>annotations</artifactId>
-            <version>19.0.0</version>
+            <version>23.1.0</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>com.moderocky</groupId>
-            <artifactId>Mask</artifactId>
-            <version>2.1.5</version>
-            <scope>compile</scope>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.bstats</groupId>
-                    <artifactId>bstats</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.bstats</groupId>
-                    <artifactId>bstats-bukkit</artifactId>
-                </exclusion>
-            </exclusions>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.13.2</version>
+            <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>com.moderocky</groupId>
-            <artifactId>Mask-Config</artifactId>
-            <version>2.1.5</version>
+            <groupId>mx.kenzie</groupId>
+            <artifactId>argo</artifactId>
+            <version>1.1.10</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
-            <groupId>com.github.SkriptLang</groupId>
-            <artifactId>Skript</artifactId>
-            <version>2.4.1</version>
-            <scope>provided</scope>
-            <exclusions>
-                <exclusion>
-                    <groupId>com.sk89q.worldguard</groupId>
-                    <artifactId>worldguard-legacy</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>net.milkbowl.vault</groupId>
-                    <artifactId>Vault</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>com.destroystokyo.paper</groupId>
-                    <artifactId>paper-api</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>org.bstats</groupId>
-            <artifactId>bstats-bukkit</artifactId>
-            <version>1.7</version>
+            <groupId>mx.kenzie</groupId>
+            <artifactId>centurion-minecraft</artifactId>
+            <version>1.0.0</version>
             <scope>compile</scope>
         </dependency>
     </dependencies>
