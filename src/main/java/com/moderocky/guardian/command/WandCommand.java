@@ -19,7 +19,7 @@ public class WandCommand extends MinecraftCommand {
     private final GuardianConfig config = Guardian.getInstance().getGuardianConfig();
     private final GuardianAPI api = Guardian.getApi();
 
-    protected WandCommand() {
+    public WandCommand() {
         super("Obtain a guardian wand.");
     }
 

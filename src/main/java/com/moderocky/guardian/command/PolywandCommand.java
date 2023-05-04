@@ -15,7 +15,7 @@ public class PolywandCommand extends MinecraftCommand {
 
     private final GuardianConfig config = Guardian.getInstance().getGuardianConfig();
 
-    protected PolywandCommand() {
+    public PolywandCommand() {
         super("Obtain a guardian poly-wand.");
     }
 

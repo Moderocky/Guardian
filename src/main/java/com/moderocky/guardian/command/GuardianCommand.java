@@ -15,7 +15,7 @@ public class GuardianCommand extends MinecraftCommand {
     private final GuardianConfig config = Guardian.getInstance().getGuardianConfig();
     private final GuardianAPI api = Guardian.getApi();
 
-    protected GuardianCommand() {
+    public GuardianCommand() {
         super("The main command for Guardian.");
     }
 
